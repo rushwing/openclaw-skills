@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{题目标题}}</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #dbeafe;
+            --accent: #f59e0b;
+            --accent-light: #fef3c7;
+            --success: #059669;
+            --success-light: #d1fae5;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --step-colors: #7c3aed, #2563eb, #059669, #d97706, #dc2626;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 16px;
+        }
+        .container { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 2rem 2.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 160px; height: 160px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+        .header .subject-tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.6rem;
+        }
+        .header h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .header .meta { font-size: 0.85rem; opacity: 0.8; }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+        .card-icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .card-title { font-size: 1rem; font-weight: 600; }
+
+        /* Problem section */
+        .section-problem .card-icon { background: var(--primary-light); }
+        .problem-box {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            border-radius: 0 8px 8px 0;
+            padding: 1rem 1.2rem;
+            font-size: 1rem;
+            white-space: pre-wrap;
+        }
+
+        /* Knowledge section */
+        .section-knowledge .card-icon { background: var(--accent-light); }
+        .knowledge-list { list-style: none; }
+        .knowledge-list li {
+            display: flex; align-items: flex-start; gap: 0.5rem;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .knowledge-list li:last-child { border-bottom: none; }
+        .knowledge-list li::before {
+            content: '📌';
+            font-size: 0.85rem;
+            margin-top: 0.15rem;
+            flex-shrink: 0;
+        }
+
+        /* Solution section */
+        .section-solution .card-icon { background: var(--success-light); }
+        .steps { counter-reset: step; }
+        .step {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px dashed var(--border);
+        }
+        .step:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .step-number {
+            counter-increment: step;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            color: white;
+        }
+        /* Cycle through step colors */
+        .step:nth-child(1) .step-number { background: #7c3aed; }
+        .step:nth-child(2) .step-number { background: #2563eb; }
+        .step:nth-child(3) .step-number { background: #059669; }
+        .step:nth-child(4) .step-number { background: #d97706; }
+        .step:nth-child(5) .step-number { background: #dc2626; }
+        .step:nth-child(6) .step-number { background: #7c3aed; }
+        .step:nth-child(7) .step-number { background: #2563eb; }
+        .step-content { flex: 1; }
+        .step-title { font-weight: 600; margin-bottom: 0.3rem; color: var(--text); }
+        .step-body { color: var(--text); }
+        .step-formula {
+            background: #f8f9ff;
+            border: 1px solid #e0e7ff;
+            border-radius: 6px;
+            padding: 0.6rem 1rem;
+            margin-top: 0.5rem;
+            font-family: "Courier New", monospace;
+            font-size: 0.95rem;
+            overflow-x: auto;
+        }
+
+        /* Summary section */
+        .section-summary .card-icon { background: #fce7f3; }
+        .insights { display: flex; flex-direction: column; gap: 0.6rem; }
+        .insight {
+            display: flex; align-items: flex-start; gap: 0.6rem;
+            background: #fdf4ff;
+            border-radius: 8px;
+            padding: 0.7rem 1rem;
+            font-size: 0.95rem;
+        }
+        .insight-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+        /* Practice section */
+        .section-practice .card-icon { background: #ecfdf5; }
+        .practice-list { list-style: none; counter-reset: practice; }
+        .practice-list li {
+            counter-increment: practice;
+            display: flex; gap: 0.6rem;
+            padding: 0.7rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            background: #f9fafb;
+            border: 1px solid var(--border);
+        }
+        .practice-list li::before {
+            content: counter(practice) '.';
+            font-weight: 700;
+            color: var(--primary);
+            flex-shrink: 0;
+            min-width: 1.2rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Math display - requires MathJax or KaTeX to be loaded */
+        .math-block {
+            overflow-x: auto;
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 1rem; }
+            .header { padding: 1.5rem; }
+            .card { padding: 1.2rem; }
+        }
+    </style>
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+            ]
+        });"></script>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="subject-tag">{{科目}} · {{难度}}</div>
+        <h1>{{题目标题}}</h1>
+        <div class="meta">生成日期：{{日期}} &nbsp;|&nbsp; 知识点：{{知识点标签}}</div>
+    </div>
+
+    <!-- 题目重述 -->
+    <div class="card section-problem">
+        <div class="card-header">
+            <div class="card-icon">📝</div>
+            <div class="card-title">题目</div>
+        </div>
+        <div class="problem-box">{{题目内容}}</div>
+    </div>
+
+    <!-- 知识点回顾 -->
+    <div class="card section-knowledge">
+        <div class="card-header">
+            <div class="card-icon">🔑</div>
+            <div class="card-title">知识点回顾</div>
+        </div>
+        <ul class="knowledge-list">
+            <!-- 示例：
+            <li>勾股定理：直角三角形中，$a^2 + b^2 = c^2$</li>
+            <li>面积公式：正方形面积 $= 边长^2$</li>
+            -->
+            {{知识点列表}}
+        </ul>
+    </div>
+
+    <!-- 详细解答步骤 -->
+    <div class="card section-solution">
+        <div class="card-header">
+            <div class="card-icon">✏️</div>
+            <div class="card-title">详细解答</div>
+        </div>
+        <div class="steps">
+            <!-- 示例步骤：
+            <div class="step">
+                <div class="step-number"></div>
+                <div class="step-content">
+                    <div class="step-title">设定未知数</div>
+                    <div class="step-body">设正方形边长为 $x$。</div>
+                    <div class="step-formula">x > 0</div>
+                </div>
+            </div>
+            -->
+            {{解答步骤}}
+        </div>
+    </div>
+
+    <!-- 关键思路总结 -->
+    <div class="card section-summary">
+        <div class="card-header">
+            <div class="card-icon">💡</div>
+            <div class="card-title">关键思路</div>
+        </div>
+        <div class="insights">
+            <!-- 示例：
+            <div class="insight">
+                <span class="insight-icon">🎯</span>
+                <span>解题关键是将面积条件转化为代数方程。</span>
+            </div>
+            -->
+            {{关键思路}}
+        </div>
+    </div>
+
+    <!-- 类似题目练习（可选） -->
+    <div class="card section-practice">
+        <div class="card-header">
+            <div class="card-icon">🏋️</div>
+            <div class="card-title">练一练</div>
+        </div>
+        <ul class="practice-list">
+            <!-- 示例：
+            <li>若正方形面积为 81 cm²，求其周长。</li>
+            <li>两个正方形面积之和为 100 cm²，若其中一个边长为 6 cm，求另一个的边长。</li>
+            -->
+            {{练习题目}}
+        </ul>
+    </div>
+
+    <div class="footer">由 AI 辅导老师生成 · 仅供学习参考</div>
+</div>
+</body>
+</html>
