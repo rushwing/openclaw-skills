@@ -1,6 +1,6 @@
 ---
 name: tutor
-description: 一对一辅导老师，适用于学生粘贴题目图片时。自动分析题目、生成中文HTML讲解文档、智能归档到分类目录，并可选生成带配音的Manim动画教学视频。支持数学、物理、化学等各科目。
+description: 一对一辅导老师，适用于学生粘贴题目图片时。自动分析题目、生成中文HTML讲解文档、智能归档到分类目录，并可选生成带配音的Manim动画教学视频。支持数学、物理、化学等各科目。重要：当用户从 Telegram 上传图片时，OpenClaw 会通过 telegram-media-adapter hook 自动注入图片元数据到消息上下文中，可通过 context.metadata.telegram_media 读取。优先使用此方式获取文件信息。
 license: MIT
 compatibility: macOS（需要预装 manim 和 ffmpeg）
 metadata: {"openclaw": {"emoji": "🎓", "os": ["darwin"], "requires": {"bins": ["ffmpeg", "manim"]}, "install": [{"id": "brew-ffmpeg", "kind": "brew", "formula": "ffmpeg", "bins": ["ffmpeg"], "label": "Install ffmpeg (brew)"}, {"id": "brew-manim", "kind": "brew", "formula": "manim", "bins": ["manim"], "label": "Install manim (brew)"}]}}
@@ -17,7 +17,122 @@ metadata: {"openclaw": {"emoji": "🎓", "os": ["darwin"], "requires": {"bins": 
 
 ---
 
-## 第一步：分析题目
+## 第一步：获取题目图片
+
+### 方式 A：通过 Telegram 上传（推荐）
+
+当用户从 Telegram 上传图片时，`telegram-media-adapter` hook 会自动注入图片元数据到消息上下文中。
+
+**第 1 步：从 metadata 读取 file_id**
+
+`context.metadata.telegram_media` 已由 hook 注入，直接读取：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `file_id` | string | Telegram 文件 ID，用于下载 |
+| `contentType` | string | `image` / `document` |
+| `message_id` | number | Telegram 消息 ID |
+| `chat_id` | number | 聊天 ID |
+| `caption` | string | 图片 caption 或消息文本 |
+
+**第 2 步：获取 Bot Token**
+
+按以下顺序查找 Bot Token：
+
+```bash
+# 1. 优先读取环境变量
+BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}"
+
+# 2. 若无环境变量，从 OpenClaw 配置文件中自动提取
+if [ -z "$BOT_TOKEN" ]; then
+  BOT_TOKEN=$(python3 - <<'EOF'
+import json, os, glob
+
+def find_token(obj):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k in ('token', 'bot_token', 'botToken') and isinstance(v, str) and ':' in v:
+                return v
+            r = find_token(v)
+            if r:
+                return r
+    elif isinstance(obj, list):
+        for item in obj:
+            r = find_token(item)
+            if r:
+                return r
+    return None
+
+for path in glob.glob(os.path.expanduser('~/.openclaw/**/*.json'), recursive=True):
+    try:
+        t = find_token(json.load(open(path)))
+        if t:
+            print(t)
+            break
+    except Exception:
+        pass
+EOF
+  )
+fi
+
+if [ -z "$BOT_TOKEN" ]; then
+  echo "ERROR: Bot token not found. Set TELEGRAM_BOT_TOKEN or check ~/.openclaw config."
+  exit 1
+fi
+```
+
+**第 3 步：调用 getFile 获取下载路径**
+
+```bash
+FILE_ID="<context.metadata.telegram_media.file_id>"
+
+RESPONSE=$(curl -sf "https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${FILE_ID}")
+if [ $? -ne 0 ]; then
+  echo "ERROR: Telegram getFile API call failed"
+  exit 1
+fi
+
+FILE_PATH=$(echo "$RESPONSE" | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+if not d.get('ok'):
+    print('ERROR: ' + str(d), file=sys.stderr)
+    sys.exit(1)
+print(d['result']['file_path'])
+")
+```
+
+**第 4 步：下载文件到 uploads/ 目录**
+
+```bash
+UPLOADS_DIR="${HOME}/.openclaw/workspace/uploads"
+mkdir -p "$UPLOADS_DIR"
+
+# 用 file_id 前缀命名，保留原始扩展名，避免冲突
+EXT="${FILE_PATH##*.}"
+SHORT_ID=$(echo "$FILE_ID" | cut -c1-16)
+LOCAL_PATH="${UPLOADS_DIR}/tg_${SHORT_ID}.${EXT}"
+
+curl -sf "https://api.telegram.org/file/bot${BOT_TOKEN}/${FILE_PATH}" -o "$LOCAL_PATH"
+if [ $? -ne 0 ]; then
+  echo "ERROR: File download failed"
+  exit 1
+fi
+
+echo "Downloaded: $LOCAL_PATH"
+```
+
+下载成功后，`LOCAL_PATH` 即为本地图片路径，传入后续分析步骤使用。
+
+> **回退策略**：若 API 调用失败（网络不通、token 失效），检查 `~/.openclaw/workspace/uploads/` 目录中按修改时间排序的最新文件作为备用。
+
+### 方式 B：直接读取本地图片
+
+如果用户已提供本地图片路径，直接读取。
+
+---
+
+## 第二步：分析题目
 
 收到图片时：
 
@@ -417,6 +532,28 @@ python {SKILL_DIR}/scripts/synthesize_video.py manifest.json 最终讲解视频.
 | `edge-tts` | 脚本自动在 `~/.tutor-venv` 中安装 | 中文配音合成 |
 | `ffmpeg` | `brew install ffmpeg` | 音视频处理 |
 | KaTeX CDN | HTML自动加载 | HTML中的公式渲染 |
+
+## Hook 依赖
+
+本 skill 依赖 `telegram-media-adapter` hook 来获取 Telegram 媒体元数据。
+
+**确保在 `openclaw.json` 中启用**：
+```json
+{
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "telegram-media-adapter": {
+          "enabled": true
+        }
+      }
+    }
+  }
+}
+```
+
+启用后，收到 Telegram 图片消息时，hook 会自动注入 `telegram_media` 到消息 metadata 中，skill 可直接读取使用。
 
 ## 文件结构参考
 
