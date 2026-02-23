@@ -49,6 +49,34 @@ source "$VENV_DIR/bin/activate"
 
 > **前提**：`python3-venv` 必须已安装。若未安装：`sudo apt-get install python3-venv`
 
+### 需运行时安装（中文字体）
+
+Raspberry Pi OS Lite 默认不含中文字体，Manim 渲染中文时会回退到方块字。
+
+> **不要** 使用 `sudo apt-get install fonts-noto-cjk`：该包会将日文字形设为更高优先级，导致部分中文字符显示错误。请按以下步骤手动安装简体中文专用包：
+
+```bash
+# 1. 如果已安装 apt 版本，先卸载
+sudo apt-get remove -y fonts-noto-cjk
+
+# 2. 下载简体中文专用包（约 60 MB）
+wget https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKsc-hinted.zip
+
+# 3. 解压并安装到系统字体目录
+unzip NotoSansCJKsc-hinted.zip
+sudo mkdir -p /usr/share/fonts/opentype/noto
+sudo cp NotoSansCJK*.otf /usr/share/fonts/opentype/noto/
+sudo chmod 644 /usr/share/fonts/opentype/noto/NotoSansCJK*.otf
+
+# 4. 刷新字体缓存
+sudo fc-cache -fv
+
+# 5. 验证字体已被识别
+fc-list | grep "Noto Sans CJK SC"
+```
+
+最后一条命令应输出类似 `NotoSansCJKsc-Regular.otf: Noto Sans CJK SC:style=Regular` 的内容，说明安装成功。
+
 ---
 
 ## 工作流程总览
@@ -513,6 +541,7 @@ python {SKILL_DIR}/scripts/synthesize_video.py manifest.json 最终讲解视频.
 | `ffmpeg` | **预装（Linuxbrew，manim 依赖自带）** | `/home/linuxbrew/.linuxbrew/bin/ffmpeg` | 音视频处理 |
 | `edge-tts` | **运行时安装** | `~/.tutor-venv`（Python venv） | 中文配音合成 |
 | `python3-venv` | 系统包（按需） | `sudo apt-get install python3-venv` | 创建 edge-tts venv 的前提 |
+| `NotoSansCJKsc` | **运行时安装（手动）** | 见"环境依赖策略 → 中文字体"节，勿用 apt 版（日文优先级问题） | Manim 中文字体渲染 |
 | KaTeX CDN | 自动加载 | HTML 内联 CDN | HTML 中的公式渲染 |
 
 ## 文件结构参考

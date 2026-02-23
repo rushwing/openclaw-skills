@@ -101,8 +101,8 @@ STEP_COLORS = ["#7c3aed", "#2563eb", "#059669", "#d97706", "#dc2626", "#0891b2"]
 MANIM_HEADER = '''\
 from manim import *
 
-# Chinese font support — set MANIM_FONT env var or edit below
-CHINESE_FONT = "PingFang SC"   # macOS; try "Noto Sans CJK SC" on Linux
+# Chinese font support — install with: sudo apt-get install -y fonts-noto-cjk
+CHINESE_FONT = "Noto Sans CJK SC"   # Linux/Raspberry Pi; macOS: "PingFang SC"
 
 
 class TutorScene(Scene):
