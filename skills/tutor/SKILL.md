@@ -152,7 +152,7 @@ IMAGE_DATA=$(base64 "$IMAGE_PATH")
 
 ## 第二步：生成HTML讲解文档
 
-使用 `{SKILL_DIR}/assets/template.html` 作为基础，填充以下占位符后保存为独立文件：
+生成以下结构的 HTML 文件，填充对应占位符后保存为独立文件：
 
 | 占位符 | 说明 |
 |--------|------|
@@ -361,117 +361,166 @@ HTML 保存完成后，必须向学生询问：
 ## 第六步：设计视频分镜脚本（内部设计文档）
 
 > **注意：分镜脚本是 AI 内部规划文档，不展示给学生。所有文件保存到题目文件夹内。**
+>
+> **格式参考**：`{SKILL_DIR}/assets/narration_template.json`（完整带注释的样本，含每段 `type` / `duration_hint_s` / `visual` 字段说明，可直接给 Kimi 2.5 等弱 LLM 参考）。
 
 ### 分镜脚本结构
 
-在题目文件夹内保存 `storyboard.json`：
+在题目文件夹内保存 `storyboard.json`。必须包含 **7 个固定 segment**，每个 segment 含 `type`、`duration_hint_s`、`narration`、`visual` 四个核心字段：
 
 ```json
 {
   "title": "题目名称",
   "subject": "数学",
+  "method_name": "解题方法名（2-5字）",
   "segments": [
     {
       "id": "intro",
-      "type": "title",
-      "title": "题目名称",
-      "subtitle": "核心解题思路一句话",
-      "narration": "同学，我们来看这道题。"
+      "segment_no": 1,
+      "type": "title_card",
+      "duration_hint_s": "4~6",
+      "narration": "同学，我们来看这道XXX题，学习「方法名」的解题方法。",
+      "visual": {
+        "layout": "居中铺满",
+        "elements": [
+          {"role": "主标题", "text": "方法名称", "style": "font_size=58, BOLD, WHITE"},
+          {"role": "副标题", "text": "题目类型描述", "style": "font_size=24, C_MUTED"}
+        ],
+        "animation_sequence": ["FadeIn(主标题, shift=UP)", "FadeIn(副标题)", "wait", "FadeOut"]
+      }
     },
     {
       "id": "problem",
-      "type": "problem_statement",
-      "lines": ["题目第一行", "题目第二行"],
-      "manim_figure_code": [
-        "sq = Square(side_length=2.5, color=BLUE_C, fill_opacity=0.15)",
-        "lbl = MathTex('a', color=YELLOW).next_to(sq, RIGHT, buff=0.2)",
-        "figure = VGroup(sq, lbl)"
-      ],
-      "narration": "题目问的是..."
+      "segment_no": 2,
+      "type": "text_card",
+      "duration_hint_s": "12~18",
+      "narration": "题目描述...",
+      "visual": {
+        "layout": "居中带圆角深蓝卡片 fill=#1e3a5f stroke=#3b82f6",
+        "elements": [
+          {"role": "角标签", "text": "题  目", "style": "左上角灰色小字"},
+          {"role": "题目文本", "lines": ["第一行：图形关系", "第二行：已知条件", "第三行：求什么？"], "style": "font_size=26, 白色, 行间距0.35"}
+        ],
+        "animation_sequence": ["FadeIn(角标签)", "DrawBorderThenFill(卡片)", "FadeIn(文字, shift=UP)", "wait", "FadeOut"]
+      }
     },
     {
-      "id": "step1",
-      "type": "solution_step",
-      "step_number": 1,
-      "step_title": "步骤名称",
-      "content_lines": ["说明文字"],
-      "formula": "$公式$",
-      "highlight_color": "#7c3aed",
-      "narration": "第一步，我们..."
+      "id": "figure",
+      "segment_no": 3,
+      "type": "geometry_drawing",
+      "duration_hint_s": "9~13",
+      "narration": "描述图形结构...",
+      "visual": {
+        "layout": "图形居中偏左 x≈-2.0，右侧留空给公式",
+        "coordinate_system": "Manim坐标系，正方形边长=2.5单位，GS=[-2.0,0,0]",
+        "elements": [
+          {"role": "阴影区域", "shape": "Polygon", "vertices": "根据题目填写", "style": "fill=#3b82f6, opacity=0.30"},
+          {"role": "主图形轮廓", "shape": "Polygon", "style": "stroke=WHITE, width=2.5"},
+          {"role": "顶点标签A/B/C/D", "style": "font_size=22, 白色, 偏移0.25避遮挡"},
+          {"role": "特殊点（中点等）", "shape": "Dot(radius=0.08, YELLOW) + Text标签", "style": "黄色小圆点"},
+          {"role": "面积标注", "text": "XX cm²", "style": "font_size=22, color=#93c5fd"}
+        ],
+        "animation_sequence": ["FadeIn(阴影)", "Create(主图形)", "FadeIn(顶点标签)", "FadeIn(特殊点+标签)", "FadeIn(面积标注)", "wait≈7秒"],
+        "note": "此段几何对象全部存入 self._fig，供后续segment使用"
+      }
+    },
+    {
+      "id": "triangles",
+      "segment_no": 4,
+      "type": "highlight_geometry",
+      "duration_hint_s": "18~24",
+      "narration": "关键发现！...",
+      "visual": {
+        "layout": "在segment 3图形基础上叠加高亮",
+        "elements": [
+          {"role": "关键图形1（外部）", "style": "fill=#f59e0b, opacity=0.55, stroke=#fbbf24"},
+          {"role": "关键图形2（内部）", "style": "fill=#ef4444, opacity=0.55, stroke=#f87171"},
+          {"role": "关键图形3（外部）", "style": "fill=#f59e0b, opacity=0.55"},
+          {"role": "各图形标签", "style": "font_size=17, 放在重心位置"},
+          {"role": "底部说明文字", "text": "三个全等的XXX！", "style": "font_size=26, #fbbf24, BOLD, to_edge(DOWN)"}
+        ],
+        "animation_sequence": ["FadeIn(图形1+标签)", "wait(0.5)", "FadeIn(图形2+标签)", "wait(0.5)", "FadeIn(图形3+标签)", "Indicate(全部, scale=1.15)", "FadeIn(底部说明)", "wait≈16秒", "FadeOut(底部说明)"],
+        "note": "此段对象存入 self._tris"
+      }
+    },
+    {
+      "id": "calculate",
+      "segment_no": 5,
+      "type": "equation_steps",
+      "duration_hint_s": "15~20",
+      "narration": "推导计算过程...",
+      "visual": {
+        "layout": "图形保留左侧，右上区域显示推导步骤",
+        "elements": [
+          {"role": "小节标题", "text": "如「求小三角形的面积」", "style": "font_size=22, #f59e0b, BOLD, to_corner(UR)"},
+          {"role": "推导步骤1", "text": "关系式", "style": "font_size=19, #e2e8f0"},
+          {"role": "推导步骤2", "text": "化简", "style": "font_size=19, #e2e8f0"},
+          {"role": "结果高亮框", "text": "中间结果", "style": "font_size=21, #c4b5fd, BOLD; 圆角框 fill=#4c1d95"}
+        ],
+        "animation_sequence": ["FadeIn(标题)", "FadeIn(步骤1)", "FadeIn(步骤2)", "wait(1)", "DrawBorderThenFill(结果框)", "FadeIn(结果)", "Indicate(对应图形)", "wait≈13秒"],
+        "note": "此段对象存入 self._calc_grp"
+      }
+    },
+    {
+      "id": "assemble",
+      "segment_no": 6,
+      "type": "final_equation",
+      "duration_hint_s": "9~13",
+      "narration": "化整为零！把各部分加起来...",
+      "visual": {
+        "layout": "替换右侧计算区，图形保留",
+        "elements": [
+          {"role": "小节标题", "text": "化整为零！", "style": "font_size=22, #10b981, BOLD"},
+          {"role": "拼合公式", "text": "大图形 = 部分1+部分2+...", "style": "font_size=18, #e2e8f0"},
+          {"role": "代入数值", "text": "= XX + XX + XX", "style": "font_size=21, #e2e8f0"},
+          {"role": "最终答案（重点高亮）", "text": "= XX cm²", "style": "font_size=30, #34d399, BOLD; 圆角框 fill=#064e3b"}
+        ],
+        "animation_sequence": ["FadeOut(self._calc_grp)", "FadeIn(标题)", "FadeIn(拼合公式)", "FadeIn(代入数值)", "Indicate(相关图形)", "DrawBorderThenFill(答案框)+FadeIn(答案)", "wait≈8秒", "FadeOut(图形+高亮+本段所有)"]
+      }
     },
     {
       "id": "summary",
-      "type": "summary",
-      "title": "解题总结",
-      "points": ["结论1", "结论2"],
-      "key_insight": "解题关键一句话",
-      "narration": "总结..."
+      "segment_no": 7,
+      "type": "answer_reveal",
+      "duration_hint_s": "12~16",
+      "narration": "总结答案和解题关键...",
+      "visual": {
+        "layout": "居中铺满，图形已清空",
+        "elements": [
+          {"role": "问题回顾文字", "text": "XXX 的面积 =", "style": "font_size=34, #94a3b8, 居中偏上"},
+          {"role": "大号最终答案", "text": "XX cm²", "style": "font_size=64, #34d399, BOLD; 绿色圆角框"},
+          {"role": "解题关键提示框", "text": "💡 关键：一句话总结", "style": "font_size=22, #fbbf24; 橙色圆角框 fill=#451a03"}
+        ],
+        "animation_sequence": ["FadeIn(问题回顾, shift=UP)", "DrawBorderThenFill(答案框)", "FadeIn(大号答案)", "DrawBorderThenFill(提示框)", "FadeIn(提示文字)", "wait≈12秒"]
+      }
     }
   ]
 }
 ```
 
-### 几何图形重绘规则（`manim_figure_code`）
-
-**有几何图形时**，在 `problem_statement` 的 `manim_figure_code` 字段中填写若干行 Manim Python 代码（JSON 数组，每项一行）。代码约定：
-
-- 使用标准 Manim 几何原语：`Square`、`Circle`、`Triangle`、`Polygon`、`Line`、`Arc`、`Angle`、`Arrow`、坐标轴 `Axes` 等
-- 用 `MathTex` / `Text` 添加标注（边长、角度、变量名等）
-- 颜色风格：图形主体用 `BLUE_C`（fill_opacity 0.15–0.3），标注用 `YELLOW` 或 `WHITE`
-- **最后一行必须将所有对象合并**：`figure = VGroup(obj1, obj2, ...)`
-- 生成器会自动对 `figure` 做 `scale_to_fit_height(3.0)` 缩放，无需手动设尺寸
-
-**常见示例：**
-
-```python
-# 正方形 + 边长标注
-sq = Square(side_length=2.5, color=BLUE_C, fill_opacity=0.15)
-lbl = MathTex('a', color=YELLOW).next_to(sq, RIGHT, buff=0.2)
-figure = VGroup(sq, lbl)
-
-# 直角三角形 + 三边标注
-tri = Polygon(ORIGIN, RIGHT*3, RIGHT*3+UP*2, color=BLUE_C, fill_opacity=0.15)
-la = MathTex('3').next_to(tri, DOWN, buff=0.15)
-lb = MathTex('2').next_to(tri, RIGHT, buff=0.15)
-lc = MathTex('c').move_to(tri.get_center() + UL*0.5)
-figure = VGroup(tri, la, lb, lc)
-
-# 圆 + 半径
-circ = Circle(radius=1.5, color=BLUE_C, fill_opacity=0.15)
-radius_line = Line(ORIGIN, RIGHT*1.5, color=WHITE)
-r_lbl = MathTex('r', color=YELLOW).next_to(radius_line, UP, buff=0.1)
-figure = VGroup(circ, radius_line, r_lbl)
-```
-
-**纯文字/方程题**：省略 `manim_figure_code` 字段（或设为 `null`），视频题目页只显示文字。
-
 ### 分镜设计原则
 
+- **必须包含 7 个固定 segment**（id 依次：intro / problem / figure / triangles / calculate / assemble / summary），不得增减
 - **每个 segment 对应一段音频**，`narration` 字段即为该段配音读白
-- **步骤颜色循环使用**（按步骤编号自动分配）：
-  - 步骤1：`#7c3aed`（紫）
-  - 步骤2：`#2563eb`（蓝）
-  - 步骤3：`#059669`（绿）
-  - 步骤4：`#d97706`（琥珀）
-  - 步骤5：`#dc2626`（红）
-- 公式写成 LaTeX 格式（不含外层 `$`，脚本会自动加）
-- **`formula` 字段只放纯 LaTeX 数学公式**（如 `$x^2 = 64$`）；**不得混入中文**，中文说明放 `content_lines`
-  - ✅ 正确：`"formula": "$S_{阴影} = S_1 - S_2$"` 中若必须带中文，直接写入 `content_lines`，formula 只保留纯符号
-  - ❌ 错误：`"formula": "$阴影面积 = 64 - 4\\pi$"`（MathTex 无法编译中文，会报 LaTeX Unicode 错误）
-  - 若公式含中文，脚本会自动降级为 `Text` 渲染（不走 LaTeX），视觉上仍有高亮框
-- `manim_figure_code` 中的标注：纯数学变量用 `MathTex`，含中文的标注用 `Text("...", font=CHINESE_FONT)` 或 `self._tx(...)`（脚本顶部有定义）
-- 每段 narration 约 10–25 字，语速自然
+- **`visual` 字段中不得出现 MathTex**：Manim 中文字体不支持 MathTex，所有文字用 `Text(font=FONT)` 渲染
+- **narration 字符数 × 0.12 秒 ≈ 音频时长**，据此控制 `duration_hint_s` 范围
+- 颜色常量统一使用 `TutorScene_template.py` 顶部定义的名称（C_AMBER / C_RED / C_GREEN 等），不要硬编码十六进制
+- `geometry_drawing` segment 的所有几何对象必须存入 `self._fig`；`highlight_geometry` 存入 `self._tris`；`equation_steps` 存入 `self._calc_grp`
+- 每段 narration 约 10–60 字，各 segment 字数参考 `{SKILL_DIR}/assets/narration_template.json` 中的说明
 
 ### 生成 narration 音频列表
 
-为每个 segment 提取 narration，构建 `_work/narration.json`（保存到中间文件目录）：
+从 storyboard.json 各 segment 提取 `narration` 字段，构建 `_work/narration.json`（供 generate_audio.py 使用，只需 `id` + `text` 两个字段）：
 
 ```json
 [
-  {"id": "intro",   "text": "同学，我们来看这道题。"},
-  {"id": "problem", "text": "题目问的是..."},
-  {"id": "step1",   "text": "第一步，我们..."},
-  {"id": "summary", "text": "总结..."}
+  {"id": "intro",     "text": "同学，我们来看这道XXX题，学习「方法名」的解题方法。"},
+  {"id": "problem",   "text": "题目描述..."},
+  {"id": "figure",    "text": "描述图形结构..."},
+  {"id": "triangles", "text": "关键发现！..."},
+  {"id": "calculate", "text": "推导计算..."},
+  {"id": "assemble",  "text": "化整为零！..."},
+  {"id": "summary",   "text": "总结答案..."}
 ]
 ```
 
@@ -483,6 +532,12 @@ figure = VGroup(circ, radius_line, r_lbl)
 
 ### 7.1 生成 Manim 脚本
 
+> **模板文件**：
+> - `{SKILL_DIR}/assets/TutorScene_template.py` — 含 7 个 segment 方法骨架、颜色常量、坐标系注释、FILL_IN 占位符
+> - `{SKILL_DIR}/assets/LLM_PROMPT_GUIDE.md` — 完整三步工作流（理解题目 → 生成分镜 → 填写模板），适用于 Kimi 2.5 等弱 LLM
+
+**方式 A（推荐）：自动生成**
+
 在题目文件夹内运行（输出到 `_work/`）：
 
 ```bash
@@ -491,13 +546,29 @@ python {SKILL_DIR}/scripts/generate_manim.py storyboard.json _work/TutorScene.py
 
 脚本会根据分镜 JSON 生成完整的 `_work/TutorScene.py`，包含：
 - **标题页**：题目名称 + 一句话思路
-- **题目展示**：蓝色背景卡片，若有原题图片则左侧显示图片、右侧显示题目文字；无图片则仅显示文字
-- **每个解题步骤**：
-  - 左上角彩色数字徽章 + 步骤标题
-  - 步骤说明文字淡入
-  - **关键公式高亮框**（颜色与步骤一致），Create 动画绘制边框
-  - `Indicate` 闪烁效果引导注意力
-- **总结页**：绿色✓清单 + 金色关键思路框
+- **题目展示**：蓝色背景卡片
+- **几何图形页**：按 `visual.elements` 描述逐步 Create 图形
+- **关键发现页**：高亮全等图形，底部结论文字
+- **推导计算页**：右侧公式步骤 + 紫色中间结果框
+- **化整为零页**：拼合公式 + 绿色最终答案框
+- **总结页**：大号答案 + 金色关键提示框
+
+**方式 B（手动/弱 LLM）：填写模板**
+
+当方式 A 输出质量不满意时，使用 LLM（如 Kimi 2.5）按以下步骤生成：
+
+1. **读取模板**：`{SKILL_DIR}/assets/TutorScene_template.py`（骨架代码，含 FILL_IN 占位符）
+2. **按 LLM_PROMPT_GUIDE 三步调用**（见 `{SKILL_DIR}/assets/LLM_PROMPT_GUIDE.md`）：
+   - **步骤1**：提取题目结构化信息（坐标、关键量、解题步骤）→ 输出 JSON
+   - **步骤2**：基于步骤1 JSON 生成 narration.json（7 段固定结构）
+   - **步骤3**：将步骤1+2 的输出贴入步骤3 System Prompt，填写 TutorScene_template.py 中所有 FILL_IN 占位符
+3. **保存结果**至 `_work/TutorScene.py`
+
+> **关键约束（抄自 LLM_PROMPT_GUIDE.md）**：
+> - 不得使用 `MathTex`（中文字体不兼容），全部用 `Text(font=FONT)`
+> - 不得使用 `Transform()`，用 `FadeOut + FadeIn` 替代
+> - `self.wait()` = 音频时长 − 本段所有 run_time 之和（字符数 × 0.12 秒估算音频时长）
+> - 颜色常量只用模板顶部定义的 C_AMBER / C_GREEN / C_PURPLE 等，禁止硬编码十六进制
 
 ### 7.2 渲染动画
 
