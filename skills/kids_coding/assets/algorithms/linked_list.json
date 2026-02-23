@@ -1,0 +1,219 @@
+{
+  "_comment": "链表算法分镜模板 — 适用于：链表遍历、反转、插入节点、删除节点、双指针",
+  "_usage": "将此模板填入 storyboard.json，替换所有 FILL_IN 占位符",
+  "title": "FILL_IN_题目名称（如：链表反转）",
+  "subject": "算法",
+  "algorithm_type": "linked_list",
+  "operation": "FILL_IN（reverse/insert/delete/traversal/two_pointer）",
+  "segments": [
+    {
+      "id": "intro",
+      "segment_no": 1,
+      "type": "title_card",
+      "duration_hint_s": "4~6",
+      "narration": "今天我们来学习「FILL_IN_算法名」，口诀是：FILL_IN_口诀。",
+      "narration_examples": {
+        "reverse":     "今天我们来学习「链表反转」，口诀是：断开、调头、重连。",
+        "insert":      "今天我们来学习「链表插入节点」，口诀是：找到位置、接好前后两个指针。",
+        "delete":      "今天我们来学习「链表删除节点」，口诀是：跳过目标、直接连接。",
+        "two_pointer": "今天我们来学习「链表双指针」，口诀是：快慢同行，快到终点时慢指针就是答案。"
+      },
+      "visual": {
+        "layout": "居中铺满",
+        "elements": [
+          {"role": "主标题", "text": "FILL_IN_算法名称", "style": "font_size=52, BOLD, WHITE"},
+          {"role": "副标题/口诀", "text": "FILL_IN_口诀", "style": "font_size=28, C_MUTED"}
+        ],
+        "animation_sequence": [
+          "FadeIn(主标题, shift=UP*0.3), run_time=0.8",
+          "FadeIn(副标题), run_time=0.5",
+          "wait(约3秒)",
+          "FadeOut(VGroup)"
+        ]
+      }
+    },
+    {
+      "id": "problem",
+      "segment_no": 2,
+      "type": "text_card",
+      "duration_hint_s": "10~16",
+      "narration": "FILL_IN_完整朗读题目。说明链表结构和需要完成的操作。",
+      "narration_examples": {
+        "reverse": "给定一个链表：1→2→3→4→5→null。请把这个链表反转，变成5→4→3→2→1→null。",
+        "insert":  "给定链表1→3→5，在值为3的节点后面插入一个值为4的新节点，得到1→3→4→5。"
+      },
+      "visual": {
+        "layout": "居中带圆角深蓝卡片",
+        "card_style": "fill=#1e3a5f, stroke=#3b82f6",
+        "elements": [
+          {"role": "角标签", "text": "题  目", "style": "font_size=18, C_MUTED, to_corner(UL)"},
+          {
+            "role": "题目文本",
+            "lines": [
+              "FILL_IN_第一行（如：给定链表：1→2→3→4→5→null）",
+              "FILL_IN_第二行（如：请把这个链表完全反转）",
+              "FILL_IN_第三行（如：输出：5→4→3→2→1→null）"
+            ],
+            "style": "font_size=26, C_TEXT, 左对齐, 行间距0.35"
+          }
+        ],
+        "animation_sequence": [
+          "FadeIn(角标签)",
+          "DrawBorderThenFill(卡片)",
+          "FadeIn(文字, shift=UP*0.1)",
+          "wait(约10秒)",
+          "FadeOut(全部)"
+        ]
+      }
+    },
+    {
+      "id": "draw",
+      "segment_no": 3,
+      "type": "list_draw",
+      "duration_hint_s": "7~10",
+      "narration": "FILL_IN_描述画链表的过程。逐个出现节点，用箭头连接。",
+      "narration_example": "我们先把链表画出来。节点1是头节点，它的next指针指向节点2，然后是3、4、5，最后指向null。",
+      "visual": {
+        "layout": "链表水平排列，整体居中，y=0",
+        "coordinate_system": "节点宽0.8高0.6，节点间距1.4 Manim单位",
+        "manim_objects": {
+          "node":     "make_list_node(val, pos)  → VGroup(RoundedRect, Text(val))",
+          "arrow":    "make_list_arrow(from_node, to_node)  → Arrow",
+          "null":     "self.tx('null', font_size=18, color=C_MUTED).next_to(last_node, RIGHT, buff=0.5)",
+          "head_ptr": "make_pointer_arrow(nodes[0], 'head')  → VGroup(Arrow↓, Text('head'))",
+          "storage":  "self._list_nodes = [node_VGroup, ...]，self._list_arrows = [Arrow, ...]"
+        },
+        "layout_formula": {
+          "n_nodes": "n = len(vals)",
+          "start_x": "-(n-1) * 0.7  # 居中",
+          "node_x":  "start_x + i * 1.4"
+        },
+        "animation_sequence": [
+          "self.play(*[FadeIn(n) for n in self._list_nodes], run_time=0.8)",
+          "self.play(*[Create(a) for a in self._list_arrows], FadeIn(null_txt), run_time=0.6)",
+          "self.play(FadeIn(head_ptr), run_time=0.4)",
+          "wait(约5秒)"
+        ],
+        "note": "self._list_nodes、self._list_arrows、head_ptr 必须在此段末赋值"
+      }
+    },
+    {
+      "id": "operation_1",
+      "segment_no": 4,
+      "type": "list_pointer_init",
+      "duration_hint_s": "7~10",
+      "narration": "FILL_IN_描述初始化指针的过程。说明各指针的初始位置和含义。",
+      "narration_examples": {
+        "reverse":     "反转链表需要三个指针：prev指向null，curr指向头节点1，next是临时保存用的。我们从头节点开始操作。",
+        "insert":      "插入节点需要找到插入位置。curr指针从头节点出发，一步一步往右走，直到找到值为3的节点。",
+        "two_pointer": "双指针方法：slow指针和fast指针都从头节点出发，fast比slow快一步。"
+      },
+      "visual": {
+        "layout": "链表保留，指针箭头从节点上方向下",
+        "pointer_styles": {
+          "prev":  "make_pointer_arrow(target, 'prev', color=C_RANGE_L)  # 紫色",
+          "curr":  "make_pointer_arrow(target, 'curr', color=C_POINTER)  # 琥珀",
+          "fast":  "make_pointer_arrow(target, 'fast', color=C_NODE_RESULT)  # 绿色",
+          "slow":  "make_pointer_arrow(target, 'slow', color=C_POINTER)  # 琥珀"
+        },
+        "animation_sequence": [
+          "self.play(FadeIn(prev_ptr), run_time=0.4)  # 若有 prev",
+          "self.play(FadeIn(curr_ptr), run_time=0.4)",
+          "目标节点变 C_NODE_CURRENT",
+          "FadeIn(说明文字) 到 to_edge(DOWN)",
+          "wait(约5秒)",
+          "FadeOut(说明文字)"
+        ],
+        "note": "存储：self._curr_ptr，self._prev_ptr 等，供 _operation_2 更新位置"
+      }
+    },
+    {
+      "id": "operation_2",
+      "segment_no": 5,
+      "type": "list_pointer_steps",
+      "duration_hint_s": "14~20",
+      "narration": "FILL_IN_逐步描述链表操作过程。说明每一步指针移动或结构变化。不超过80字。",
+      "narration_examples": {
+        "reverse": "第一步，把curr的next指针断开，改为指向prev（也就是null）。然后prev往右移到节点1，curr往右移到节点2。继续同样操作，直到curr变成null，反转完成！",
+        "insert":  "curr指针找到值为3的节点后，先把新节点的next指向节点3的next（也就是节点5），然后把节点3的next改为指向新节点4。链表就插入成功了！"
+      },
+      "visual": {
+        "layout": "链表保留，动态更新指针位置和箭头方向",
+        "reverse_steps": [
+          "1. 保存 next_node = curr.next（显示临时 next 标签）",
+          "2. 显示新箭头从 curr 指向 prev（Create 新 Arrow，FadeOut 旧 Arrow）",
+          "3. prev_ptr.animate.shift(RIGHT*1.4)（移动 prev 指针到 curr 位置）",
+          "4. curr_ptr.animate.shift(RIGHT*1.4)（移动 curr 指针到 next_node 位置）",
+          "5. 对应节点颜色：curr节点→C_NODE_VISITED，prev节点→C_NODE_CURRENT",
+          "6. 重复以上步骤直到 curr = null"
+        ],
+        "insert_steps": [
+          "1. curr 节点高亮 C_NODE_CURRENT，显示'找到位置！'",
+          "2. FadeIn(new_node) from shift=DOWN*0.5（新节点从下方出现）",
+          "3. Create(new_node→curr.next 的箭头) — 新节点的 next 先连好",
+          "4. FadeOut(curr→curr.next 的旧箭头)",
+          "5. Create(curr→new_node 的新箭头) — curr.next 改为指向新节点",
+          "6. new_node 变 C_NODE_RESULT"
+        ],
+        "pointer_move_code": "ptr_VGroup.animate.shift(RIGHT * 1.4)  # 向右移一个节点距离"
+      }
+    },
+    {
+      "id": "result",
+      "segment_no": 6,
+      "type": "list_result",
+      "duration_hint_s": "7~10",
+      "narration": "FILL_IN_描述操作后的链表状态。",
+      "narration_examples": {
+        "reverse": "反转完成！链表变成了5→4→3→2→1→null。所有节点的箭头都掉头了！",
+        "insert":  "插入成功！链表变成了1→3→4→5→null。新节点4已经在3和5之间了！"
+      },
+      "visual": {
+        "layout": "显示操作后的最终链表状态",
+        "elements": [
+          {
+            "role": "最终链表",
+            "description": "重新排列或更新现有节点位置和箭头，所有节点变 C_NODE_RESULT"
+          },
+          {
+            "role": "结果文字",
+            "text": "FILL_IN_结果描述（如：反转完成！5→4→3→2→1→null）",
+            "style": "result_box，to_edge(DOWN, buff=0.8)"
+          }
+        ],
+        "animation_sequence": [
+          "AnimationGroup 所有节点变 C_NODE_RESULT, lag_ratio=0.1",
+          "DrawBorderThenFill(结果框)",
+          "FadeIn(结果文字)",
+          "wait(约5秒)"
+        ]
+      }
+    },
+    {
+      "id": "summary",
+      "segment_no": 7,
+      "type": "answer_reveal",
+      "duration_hint_s": "10~14",
+      "narration": "FILL_IN_总结答案和关键规则。不超过50字。",
+      "narration_examples": {
+        "reverse": "链表反转的关键是三个指针：prev保存前一个，curr是当前，next保存下一个。每步把curr.next指向prev，时间复杂度O(n)。",
+        "insert":  "链表插入的关键：先连新节点的next，再断开原链接。时间复杂度O(n)，找到位置后插入O(1)。"
+      },
+      "visual": {
+        "layout": "清空前一段，居中铺满",
+        "elements": [
+          {"role": "问题回顾", "text": "FILL_IN_问题回顾（如：反转后链表 =）", "style": "font_size=34, C_MUTED"},
+          {"role": "大号答案", "text": "FILL_IN_最终答案（如：5→4→3→2→1→null）", "style": "result_box, font_size=44"},
+          {"role": "关键提示", "text": "FILL_IN_💡口诀+复杂度", "style": "insight_box"}
+        ],
+        "animation_sequence": [
+          "FadeOut(self._result_grp)",
+          "FadeIn(问题回顾, shift=UP*0.3)",
+          "DrawBorderThenFill(答案框) + FadeIn(答案)",
+          "DrawBorderThenFill(提示框) + FadeIn(提示)",
+          "wait(约8秒)"
+        ]
+      }
+    }
+  ]
+}

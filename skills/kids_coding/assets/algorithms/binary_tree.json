@@ -1,0 +1,258 @@
+{
+  "_comment": "二叉树算法分镜模板 — 适用于：前/中/后序遍历、层序遍历(BFS)、BST插入/查找、LCA",
+  "_usage": "将此模板填入 storyboard.json，替换所有 FILL_IN 占位符",
+  "title": "FILL_IN_题目名称（如：二叉树中序遍历）",
+  "subject": "算法",
+  "algorithm_type": "binary_tree",
+  "operation": "FILL_IN（inorder_traversal/preorder/postorder/level_order/insert/search）",
+  "segments": [
+    {
+      "id": "intro",
+      "segment_no": 1,
+      "type": "title_card",
+      "duration_hint_s": "4~6",
+      "narration": "今天我们来学习「FILL_IN_算法名」，口诀是：FILL_IN_口诀。",
+      "narration_examples": {
+        "inorder":    "今天我们来学习「中序遍历」，口诀是：左→根→右。",
+        "preorder":   "今天我们来学习「前序遍历」，口诀是：根→左→右。",
+        "postorder":  "今天我们来学习「后序遍历」，口诀是：左→右→根。",
+        "level_order":"今天我们来学习「层序遍历」，口诀是：一层一层，从左到右。",
+        "insert_bst": "今天我们来学习「二叉搜索树插入」，口诀是：小的往左，大的往右。"
+      },
+      "visual": {
+        "layout": "居中铺满",
+        "elements": [
+          {
+            "role": "主标题",
+            "text": "FILL_IN_算法名称",
+            "style": "font_size=52, BOLD, WHITE"
+          },
+          {
+            "role": "副标题/口诀",
+            "text": "FILL_IN_口诀",
+            "style": "font_size=28, C_MUTED"
+          }
+        ],
+        "animation_sequence": [
+          "FadeIn(主标题, shift=UP*0.3), run_time=0.8",
+          "FadeIn(副标题), run_time=0.5",
+          "wait(约3秒)",
+          "FadeOut(VGroup)"
+        ]
+      }
+    },
+    {
+      "id": "problem",
+      "segment_no": 2,
+      "type": "text_card",
+      "duration_hint_s": "10~16",
+      "narration": "FILL_IN_完整朗读题目。包括树的结构描述和需要完成的操作。",
+      "narration_examples": {
+        "inorder": "给定一棵二叉树，根节点值为1，左子节点值为2，右子节点值为3。节点2的左子节点值为4，右子节点值为5。请写出中序遍历的结果。"
+      },
+      "visual": {
+        "layout": "居中带圆角深蓝卡片",
+        "card_style": "fill=#1e3a5f, stroke=#3b82f6",
+        "elements": [
+          {
+            "role": "角标签",
+            "text": "题  目",
+            "style": "font_size=18, C_MUTED, to_corner(UL)"
+          },
+          {
+            "role": "题目文本",
+            "lines": [
+              "FILL_IN_第一行（树结构描述，如：给定如下二叉树）",
+              "FILL_IN_第二行（节点值，如：根节点值为1，左子节点值为2，右子节点值为3）",
+              "FILL_IN_第三行（已知条件，如：节点2的左右子节点分别为4和5）",
+              "FILL_IN_第四行（求什么，如：请写出中序遍历的顺序）"
+            ],
+            "style": "font_size=26, C_TEXT, 左对齐, 行间距0.35"
+          }
+        ],
+        "animation_sequence": [
+          "FadeIn(角标签)",
+          "DrawBorderThenFill(卡片)",
+          "FadeIn(文字, shift=UP*0.1)",
+          "wait(约10秒)",
+          "FadeOut(全部)"
+        ]
+      }
+    },
+    {
+      "id": "draw",
+      "segment_no": 3,
+      "type": "tree_draw",
+      "duration_hint_s": "7~10",
+      "narration": "FILL_IN_描述画树过程。先出现根节点，然后逐个添加子节点。",
+      "narration_example": "我们先把这棵树画出来。根节点1在最上面，它的左边是节点2，右边是节点3。节点2还有两个子节点，左边是4，右边是5。",
+      "visual": {
+        "layout": "树形居中（整体偏左x≈-0.5，为右侧预留公式空间）",
+        "coordinate_system": "Manim坐标，根节点y=2，第二层y=0.5，第三层y=-1，水平间距1.5",
+        "manim_objects": {
+          "node": "make_node(val, pos)  → VGroup(Circle(r=0.35), Text(val))",
+          "edge": "make_edge(parent_pos, child_pos)  → Line",
+          "storage": "self._tree_nodes = {id: node_VGroup}，self._tree_edges = [Line, ...]"
+        },
+        "node_layout_examples": {
+          "5_nodes": {
+            "root": [0, 2, 0],
+            "left_child": [-1.5, 0.5, 0],
+            "right_child": [1.5, 0.5, 0],
+            "left_left": [-2.5, -1, 0],
+            "left_right": [-0.5, -1, 0]
+          },
+          "7_nodes": {
+            "root": [0, 2.5, 0],
+            "left": [-2, 1, 0],
+            "right": [2, 1, 0],
+            "ll": [-3, -0.5, 0],
+            "lr": [-1, -0.5, 0],
+            "rl": [1, -0.5, 0],
+            "rr": [3, -0.5, 0]
+          }
+        },
+        "animation_sequence": [
+          "先画所有边：self.play(*[Create(e) for e in self._tree_edges], run_time=0.8)",
+          "再画所有节点：self.play(*[FadeIn(n) for n in self._tree_nodes.values()], run_time=0.8)",
+          "wait(约5秒)"
+        ],
+        "note": "self._tree_nodes 和 self._tree_edges 必须在此段末尾赋值完毕"
+      }
+    },
+    {
+      "id": "operation_1",
+      "segment_no": 4,
+      "type": "tree_traverse_start",
+      "duration_hint_s": "7~10",
+      "narration": "FILL_IN_起始操作描述。说明从哪个节点开始，按什么方向走。",
+      "narration_examples": {
+        "inorder": "中序遍历先不急着访问根节点，而是一直往左走，找到最左边的叶子节点，从那里开始访问。",
+        "preorder": "前序遍历先访问根节点，然后再去处理左子树和右子树。",
+        "level_order": "层序遍历从根节点开始，把它放进一个队列，然后一层一层地往下走。"
+      },
+      "visual": {
+        "layout": "树形保留，高亮起始节点",
+        "elements": [
+          {
+            "role": "起始节点高亮",
+            "action": "set_node_state(起始节点, 'current') + Indicate(scale=1.3)",
+            "target_node": "FILL_IN_起始节点id（中序遍历：最左叶子节点；前序/层序：根节点）"
+          },
+          {
+            "role": "说明文字",
+            "text": "FILL_IN_说明文字（如：从这里开始！）",
+            "style": "font_size=26, C_AMBER_STK, BOLD, to_edge(DOWN, buff=0.8)"
+          }
+        ],
+        "animation_sequence": [
+          "self.play(set_node_state(start, 'current'), run_time=0.4)",
+          "self.play(Indicate(start, scale_factor=1.3), run_time=0.6)",
+          "self.play(FadeIn(caption), run_time=0.4)",
+          "wait(约5秒)",
+          "self.play(FadeOut(caption), run_time=0.3)"
+        ]
+      }
+    },
+    {
+      "id": "operation_2",
+      "segment_no": 5,
+      "type": "tree_traverse_steps",
+      "duration_hint_s": "16~24",
+      "narration": "FILL_IN_逐步描述遍历过程。按访问顺序说每个节点，提到回溯。不超过80字。",
+      "narration_examples": {
+        "inorder_5nodes": "中序遍历先走到最左边，找到叶子节点4，访问它，编号①。再返回节点2，访问，编号②。然后去节点5，访问，编号③。最后是根节点1，编号④，再去右边的节点3，编号⑤。",
+        "preorder_5nodes": "前序遍历先访问根节点1，编号①。然后去左子树，访问节点2，编号②。再继续去节点4，编号③，返回后去节点5，编号④。最后去右边的节点3，编号⑤。"
+      },
+      "visual": {
+        "layout": "树形保留，逐步高亮当前节点，已访问节点变蓝",
+        "traversal_order": "FILL_IN_按遍历顺序填写节点id列表（如：[D, B, E, A, C] 表示中序）",
+        "visit_actions_per_node": [
+          "1. set_node_state(当前节点, 'current') + Indicate(scale=1.3), run_time=0.5",
+          "2. wait(0.5) — 让观众看清当前节点",
+          "3. set_node_state(当前节点, 'visited') + FadeIn(visit_badge(order)), run_time=0.4",
+          "4. 若需要回溯：Create(DashedLine(child_pos, parent_pos, color='#94a3b8')), run_time=0.3",
+          "5. wait(0.3)"
+        ],
+        "backtrack_rule": {
+          "inorder": "访问左子节点后回溯到父节点（虚线箭头），访问右子节点后也回溯",
+          "preorder": "访问根→去左子树，左子树处理完后回溯，再去右子树",
+          "postorder": "左子树和右子树都处理完才访问当前节点（回溯更频繁）"
+        },
+        "note": "visit_badge 用 self.visit_badge(order_num, node.get_center()) 创建，存入 self._badges"
+      }
+    },
+    {
+      "id": "result",
+      "segment_no": 6,
+      "type": "tree_result",
+      "duration_hint_s": "7~10",
+      "narration": "FILL_IN_描述最终结果。报出完整遍历顺序。",
+      "narration_examples": {
+        "inorder_5nodes": "中序遍历完成！访问顺序是：4、2、5、1、3。所有节点都变成绿色了！",
+        "preorder_5nodes": "前序遍历完成！访问顺序是：1、2、4、5、3。"
+      },
+      "visual": {
+        "layout": "树形保留，所有节点变绿色，底部显示结果数组",
+        "elements": [
+          {
+            "role": "所有节点变绿",
+            "action": "AnimationGroup([set_node_state(n, 'result') for n in all_nodes], lag_ratio=0.1)"
+          },
+          {
+            "role": "结果数组框",
+            "text": "FILL_IN_结果数组（如：[ 4, 2, 5, 1, 3 ]）",
+            "style": "result_box(text, font_size=28)，to_edge(DOWN, buff=0.8)"
+          }
+        ],
+        "animation_sequence": [
+          "AnimationGroup 所有节点变绿, run_time=0.8",
+          "DrawBorderThenFill(结果框), run_time=0.4",
+          "FadeIn(结果文字), run_time=0.4",
+          "wait(约5秒)"
+        ],
+        "note": "将 all_nodes、self._badges、结果框组合成 self._result_grp，供 _summary 清除"
+      }
+    },
+    {
+      "id": "summary",
+      "segment_no": 7,
+      "type": "answer_reveal",
+      "duration_hint_s": "10~14",
+      "narration": "FILL_IN_总结答案和关键规则。不超过50字。",
+      "narration_examples": {
+        "inorder": "中序遍历的答案是4、2、5、1、3。记住口诀：左→根→右，时间复杂度是O(n)，n是节点总数。",
+        "preorder": "前序遍历的答案是1、2、4、5、3。口诀：根→左→右，时间复杂度O(n)。"
+      },
+      "visual": {
+        "layout": "清空前一段，居中铺满",
+        "elements": [
+          {
+            "role": "问题回顾",
+            "text": "FILL_IN_问题回顾（如：中序遍历结果 =）",
+            "style": "font_size=34, C_MUTED，move_to(UP*1.8)"
+          },
+          {
+            "role": "大号答案",
+            "text": "FILL_IN_最终答案（如：[ 4, 2, 5, 1, 3 ]）",
+            "style": "result_box(text, font_size=50)"
+          },
+          {
+            "role": "关键提示",
+            "text": "FILL_IN_口诀+复杂度（如：💡 左→根→右，时间复杂度 O(n)）",
+            "style": "insight_box(text)"
+          }
+        ],
+        "animation_sequence": [
+          "FadeOut(self._result_grp), run_time=0.5",
+          "FadeIn(问题回顾, shift=UP*0.3), run_time=0.5",
+          "DrawBorderThenFill(答案框), run_time=0.5",
+          "FadeIn(大号答案), run_time=0.5",
+          "DrawBorderThenFill(提示框), run_time=0.4",
+          "FadeIn(提示文字), run_time=0.4",
+          "wait(约8秒)"
+        ]
+      }
+    }
+  ]
+}

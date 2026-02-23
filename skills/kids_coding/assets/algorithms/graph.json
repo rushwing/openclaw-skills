@@ -1,0 +1,226 @@
+{
+  "_comment": "图算法分镜模板 — 适用于：BFS（广度优先）、DFS（深度优先）、Dijkstra（最短路径）",
+  "_usage": "将此模板填入 storyboard.json，替换所有 FILL_IN 占位符，并选择对应算法的 visual 描述",
+  "title": "FILL_IN_题目名称（如：图的广度优先遍历）",
+  "subject": "算法",
+  "algorithm_type": "graph",
+  "operation": "FILL_IN（bfs / dfs / dijkstra）",
+  "segments": [
+    {
+      "id": "intro",
+      "segment_no": 1,
+      "type": "title_card",
+      "duration_hint_s": "4~6",
+      "narration": "今天我们来学习「FILL_IN_算法名」。口诀是：FILL_IN_口诀。",
+      "narration_examples": {
+        "bfs":      "今天我们来学习「广度优先搜索BFS」。口诀是：一圈一圈往外扩，像水波一样！",
+        "dfs":      "今天我们来学习「深度优先搜索DFS」。口诀是：一条路走到底，走不动了再退回来！",
+        "dijkstra": "今天我们来学习「Dijkstra最短路径算法」。口诀是：每次选距离最小的点，一步步更新。"
+      },
+      "visual": {
+        "layout": "居中铺满",
+        "elements": [
+          {"role": "主标题", "text": "FILL_IN_算法名称", "style": "font_size=48, BOLD, WHITE"},
+          {"role": "副标题/口诀", "text": "FILL_IN_口诀", "style": "font_size=26, C_MUTED"}
+        ],
+        "animation_sequence": [
+          "FadeIn(主标题, shift=UP*0.3), run_time=0.8",
+          "FadeIn(副标题), run_time=0.5",
+          "wait(约3秒)",
+          "FadeOut(VGroup)"
+        ]
+      }
+    },
+    {
+      "id": "problem",
+      "segment_no": 2,
+      "type": "text_card",
+      "duration_hint_s": "10~16",
+      "narration": "FILL_IN_完整朗读题目。说明图的结构（节点数、边、是否有权重）和需要解决的问题。",
+      "narration_examples": {
+        "bfs":      "给定一个有6个节点的无向图，节点编号1到6，有5条边连接它们。从节点1出发，用广度优先搜索遍历所有节点，输出访问顺序。",
+        "dijkstra": "给定一个带权重的有向图，有5个节点A到E，9条边，每条边上有距离。从节点A出发，找到到达所有其他节点的最短路径。"
+      },
+      "visual": {
+        "layout": "居中带圆角深蓝卡片",
+        "elements": [
+          {"role": "角标签", "text": "题  目", "style": "font_size=18, C_MUTED, to_corner(UL)"},
+          {
+            "role": "题目文本",
+            "lines": [
+              "FILL_IN_第一行（图的基本描述：节点数和边数）",
+              "FILL_IN_第二行（连接关系，如：1-2, 1-3, 2-4, 3-5, 4-6）",
+              "FILL_IN_第三行（问题：从哪里出发，求什么）"
+            ],
+            "style": "font_size=26, C_TEXT, 左对齐"
+          }
+        ]
+      }
+    },
+    {
+      "id": "draw",
+      "segment_no": 3,
+      "type": "graph_draw",
+      "duration_hint_s": "7~10",
+      "narration": "FILL_IN_描述画图过程。先出现节点，再画边，说明图的基本结构。",
+      "narration_example": "我们先把图画出来。6个圆圈代表6个节点，线段代表边，节点之间有连接就可以互相到达。",
+      "visual": {
+        "layout": "图形居中，整体偏左（x≈-1.5）为右侧数据结构框留出空间",
+        "coordinate_system": "节点用 Circle(r=0.4)，节点间距约1.5~2.0 Manim单位",
+        "manim_objects": {
+          "node":      "make_node(val, pos, radius=0.4)  → VGroup(Circle, Text(id))",
+          "undirected_edge": "make_edge(p1, p2)  → Line",
+          "directed_edge":   "make_arrow_edge(p1, p2, weight_txt)  → Arrow + Text(weight)",
+          "storage":   "self._graph_nodes = {'A': VGroup, ...}，self._graph_edges = [Line/Arrow, ...]"
+        },
+        "node_positions": "FILL_IN_各节点坐标（来自步骤1的 coords 字段）",
+        "edge_list": "FILL_IN_边列表（格式：[from_id, to_id, weight_or_None]）",
+        "animation_sequence": [
+          "self.play(*[Create(e) for e in self._graph_edges], run_time=0.8)",
+          "self.play(*[FadeIn(n) for n in self._graph_nodes.values()], run_time=0.8)",
+          "wait(约5秒)"
+        ],
+        "note": "self._graph_nodes 和 self._graph_edges 必须在此段末赋值"
+      }
+    },
+    {
+      "id": "operation_1",
+      "segment_no": 4,
+      "type": "graph_algo_init",
+      "duration_hint_s": "7~10",
+      "narration": "FILL_IN_描述算法初始化。高亮起始节点，显示初始数据结构（队列/栈/距离表）。",
+      "narration_examples": {
+        "bfs":      "BFS从节点1出发。先把节点1放进队列，然后标记为已访问。队列里现在有：[1]。",
+        "dfs":      "DFS从节点1出发。把节点1压入栈，标记为已访问。栈里现在有：[1]。",
+        "dijkstra": "Dijkstra从节点A出发。初始化距离表：A=0，其余节点=∞（无穷大，还不知道怎么到）。"
+      },
+      "visual": {
+        "layout": "图形偏左，右侧显示数据结构框",
+        "elements": [
+          {
+            "role": "起始节点高亮",
+            "action": "set_node_state(起始节点, 'current') + Indicate(scale=1.3)"
+          },
+          {
+            "role": "数据结构框（右侧）",
+            "bfs": {
+              "title": "Text('队列 Queue:')，右上角",
+              "content": "Text('[  1  ]')，在标题下方",
+              "style": "RoundedRectangle，fill=#1e3a5f, stroke=C_NODE_VISITED"
+            },
+            "dfs": {
+              "title": "Text('栈 Stack:')，右上角",
+              "content": "Text('[  1  ]')，在标题下方"
+            },
+            "dijkstra": {
+              "title": "Text('距离表 dist:')，右上角",
+              "rows": "每行：Text('{node_id}: {distance}')，A:0 用绿色，其余用灰色∞"
+            }
+          }
+        ],
+        "animation_sequence": [
+          "set_node_state(start_node, 'current')",
+          "Indicate(start_node, scale_factor=1.3)",
+          "FadeIn(数据结构框标题)",
+          "FadeIn(数据结构框内容)",
+          "wait(约5秒)"
+        ],
+        "note": "存储：self._data_struct_grp = VGroup(标题框 + 内容)，供后续更新"
+      }
+    },
+    {
+      "id": "operation_2",
+      "segment_no": 5,
+      "type": "graph_algo_steps",
+      "duration_hint_s": "16~24",
+      "narration": "FILL_IN_逐步描述算法执行。说明每次从数据结构取出节点、访问邻居的过程。不超过80字。",
+      "narration_examples": {
+        "bfs_6nodes": "从队列取出节点1，访问它的邻居2和3，放入队列。队列变成[2,3]，节点2和3都变蓝了。再取出节点2，访问邻居4，队列变成[3,4]。以此类推，直到所有节点都访问完。",
+        "dfs_6nodes": "从栈取出节点1，访问邻居，选第一个未访问的节点2压入栈。然后从2出发，继续深入到4，再到6。走到头了再退回来，换另一条路。",
+        "dijkstra_5nodes": "从距离最小的节点A出发（dist=0），更新邻居：B变成4，C变成2。选出dist最小的C（距离2），更新C的邻居。就这样每次选最近的节点，更新它的邻居距离。"
+      },
+      "visual": {
+        "bfs_animation_pattern": [
+          "1. FadeOut(队列旧内容)",
+          "2. 当前节点变 C_NODE_VISITED",
+          "3. 同层邻居节点：AnimationGroup([Indicate(n, scale=1.3) for n in neighbors], lag_ratio=0.3)",
+          "4. 邻居节点变 C_NODE_CURRENT",
+          "5. FadeIn(队列新内容：更新队列显示)",
+          "6. 邻居节点变 C_NODE_VISITED（下一轮取出时）",
+          "7. 重复直到队列为空"
+        ],
+        "dfs_animation_pattern": [
+          "1. 当前边变 C_EDGE_ACTIVE（琥珀色）",
+          "2. 目标节点变 C_NODE_CURRENT + Indicate",
+          "3. 目标节点变 C_NODE_VISITED",
+          "4. 继续深入（边变活跃色）",
+          "5. 回溯时：当前边变 '#94a3b8'（灰色虚线暗示）",
+          "6. 返回到父节点，换另一条未访问的边"
+        ],
+        "dijkstra_animation_pattern": [
+          "1. 高亮当前最短距离节点（变 C_NODE_CURRENT）",
+          "2. 遍历每条出边，计算新距离：dist[neighbor] = dist[current] + weight",
+          "3. 若新距离更短：更新距离表（FadeOut旧行 + FadeIn新行，颜色变绿）",
+          "4. 当前节点变 C_NODE_VISITED",
+          "5. 选下一个 dist 最小的未访问节点",
+          "6. 最短路径边最终变 C_NODE_RESULT（绿色）"
+        ],
+        "note": "BFS 结束后存储访问顺序到 self._visit_order；DFS 同样；Dijkstra 存储最短路径"
+      }
+    },
+    {
+      "id": "result",
+      "segment_no": 6,
+      "type": "graph_result",
+      "duration_hint_s": "7~10",
+      "narration": "FILL_IN_描述最终结果（访问顺序/最短路径）。",
+      "narration_examples": {
+        "bfs":      "所有节点都访问完了！BFS的访问顺序是：1、2、3、4、5、6。所有节点都变绿了！",
+        "dfs":      "DFS遍历完成！访问顺序是：1、2、4、6、3、5。",
+        "dijkstra": "最短路径找到了！从A到各节点的最短距离：B=4，C=2，D=7，E=5。绿色的边就是最短路径。"
+      },
+      "visual": {
+        "bfs_dfs": {
+          "elements": [
+            "所有节点变 C_NODE_RESULT：AnimationGroup lag_ratio=0.1",
+            "result_box('访问顺序：FILL_IN_order')，to_edge(DOWN)"
+          ]
+        },
+        "dijkstra": {
+          "elements": [
+            "最短路径边变 C_NODE_RESULT（绿色）",
+            "距离表各行全部变绿",
+            "result_box('最短距离：A→B=4, A→C=2, ...')，to_edge(DOWN)"
+          ]
+        }
+      }
+    },
+    {
+      "id": "summary",
+      "segment_no": 7,
+      "type": "answer_reveal",
+      "duration_hint_s": "10~14",
+      "narration": "FILL_IN_总结答案和关键规则。不超过50字。",
+      "narration_examples": {
+        "bfs":      "BFS的答案是：1、2、3、4、5、6。BFS用队列，一层一层往外扩，时间复杂度O(V+E)，V是节点数，E是边数。",
+        "dfs":      "DFS的答案是：1、2、4、6、3、5。DFS用栈（或递归），一条路走到底，时间复杂度O(V+E)。",
+        "dijkstra": "Dijkstra最短路径找到了。关键是每次选dist最小的节点，时间复杂度O((V+E)logV)。"
+      },
+      "visual": {
+        "layout": "清空前一段，居中铺满",
+        "elements": [
+          {"role": "问题回顾", "text": "FILL_IN（如：BFS访问顺序 =）", "style": "font_size=34, C_MUTED"},
+          {"role": "大号答案", "text": "FILL_IN（如：1→2→3→4→5→6）", "style": "result_box, font_size=46"},
+          {"role": "关键提示", "text": "FILL_IN_💡口诀+复杂度 O(V+E)", "style": "insight_box"}
+        ],
+        "animation_sequence": [
+          "FadeOut(self._result_grp)",
+          "FadeIn(问题回顾)",
+          "DrawBorderThenFill(答案框) + FadeIn(答案)",
+          "DrawBorderThenFill(提示框) + FadeIn(提示)",
+          "wait(约8秒)"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,250 @@
+[
+  {
+    "id": "intro",
+    "segment_no": 1,
+    "type": "title_card",
+    "duration_hint_s": "4~6",
+    "narration": "【旁白】今天我们来学习「算法名称」，口诀是：XXX。",
+    "visual": {
+      "layout": "居中铺满",
+      "elements": [
+        {
+          "role": "主标题",
+          "text": "算法名称（如：二叉树中序遍历）",
+          "style": "font_size=52, BOLD, WHITE"
+        },
+        {
+          "role": "副标题/口诀",
+          "text": "口诀（如：左 → 根 → 右）",
+          "style": "font_size=28, C_MUTED，在主标题下方 buff=0.5"
+        }
+      ],
+      "animation_sequence": [
+        "FadeIn(主标题, shift=UP*0.3), run_time=0.8",
+        "FadeIn(副标题), run_time=0.5",
+        "wait(约3秒)",
+        "FadeOut(VGroup)"
+      ]
+    }
+  },
+  {
+    "id": "problem",
+    "segment_no": 2,
+    "type": "text_card",
+    "duration_hint_s": "10~16",
+    "narration": "【旁白】完整朗读题目：数据结构描述、已知条件和问题。",
+    "visual": {
+      "layout": "居中带圆角深蓝卡片 fill=#1e3a5f stroke=#3b82f6",
+      "elements": [
+        {
+          "role": "角标签",
+          "text": "题  目",
+          "style": "font_size=18, C_MUTED, BOLD，to_corner(UL, buff=0.5)"
+        },
+        {
+          "role": "题目文本",
+          "lines": [
+            "第一行：描述数据结构（如：给定一棵二叉树，根节点值为1）",
+            "第二行：补充条件（如：左子节点值为2，右子节点值为3）",
+            "第三行：求什么（如：请写出中序遍历的结果）"
+          ],
+          "style": "font_size=26, C_TEXT, 左对齐，行间距0.35"
+        }
+      ],
+      "animation_sequence": [
+        "FadeIn(角标签), run_time=0.3",
+        "DrawBorderThenFill(卡片背景), run_time=0.6",
+        "FadeIn(题目文本, shift=UP*0.1), run_time=0.8",
+        "wait(约10秒)",
+        "FadeOut(全部), run_time=0.5"
+      ]
+    }
+  },
+  {
+    "id": "draw",
+    "segment_no": 3,
+    "type": "data_structure_draw",
+    "duration_hint_s": "7~10",
+    "narration": "【旁白】我们先把数据结构画出来。描述各节点/元素及其关系。",
+    "visual": {
+      "layout": "根据算法类型选择：树形居中偏左(-1.5,0) / 链表水平居中 / 数组水平居中",
+      "coordinate_system": "Manim 坐标，节点间距1.2~1.5单位",
+      "elements": [
+        {
+          "role": "节点/元素（按算法类型选择）",
+          "binary_tree": "Circle(r=0.35, fill=C_NODE_DEFAULT) + Text(val)，位置由coords字段确定",
+          "linked_list": "RoundedRectangle(0.8×0.6, fill=C_NODE_DEFAULT) + Text(val)，水平排列",
+          "binary_search": "Square(0.7, fill=C_NODE_DEFAULT) + Text(val)，水平排列 + 下方索引标签",
+          "graph": "Circle(r=0.4, fill=C_NODE_DEFAULT) + Text(id)，位置由coords字段确定",
+          "sorting": "Square(0.7, fill=C_NODE_DEFAULT) + Text(val)，水平排列"
+        },
+        {
+          "role": "边/指针（按算法类型选择）",
+          "binary_tree": "Line(parent_pos, child_pos, color=C_EDGE_DEFAULT)",
+          "linked_list": "Arrow(node_right, next_left, color=C_EDGE_DEFAULT) + Text('null') 尾部",
+          "binary_search": "无边，仅数组格",
+          "graph": "Arrow（有向）或 Line（无向），权重 Text(w) 放边中点旁",
+          "sorting": "无边，仅数组格"
+        }
+      ],
+      "animation_sequence": [
+        "按层次/从左到右逐步 Create 或 FadeIn 各节点/元素",
+        "Create 各边/指针",
+        "wait(约5秒)",
+        "注意：本段对象全部存入 self._tree_nodes / self._list_nodes / self._cells / self._graph_nodes"
+      ],
+      "note": "本段几何对象必须全部存入对应 self._xxx 属性，供 operation_1/2/result 段使用"
+    }
+  },
+  {
+    "id": "operation_1",
+    "segment_no": 4,
+    "type": "algo_init",
+    "duration_hint_s": "7~10",
+    "narration": "【旁白】描述算法起始：从哪里开始，初始化什么数据结构。",
+    "visual": {
+      "layout": "数据结构图保留，右侧或下方显示算法初始状态",
+      "elements": [
+        {
+          "role": "起始节点/元素高亮",
+          "style": "set_fill(C_NODE_CURRENT).set_stroke(C_EDGE_ACTIVE) + Indicate(scale=1.3)"
+        },
+        {
+          "role": "指针/队列/栈/左右边界（按算法类型）",
+          "binary_tree": "Arrow↓ 从根节点上方指向根节点 + Text('start')",
+          "linked_list": "Arrow↓ 从 head 上方指向头节点 + Text('head'), Text('curr')",
+          "binary_search": "Arrow↑ 从 index=0 下方指向 + Text('left')，index=n-1 + Text('right')",
+          "graph": "高亮起点 + 右侧显示队列/栈初始状态框",
+          "sorting": "Text('第1轮') 标签，指针从第一格开始"
+        },
+        {
+          "role": "说明文字",
+          "text": "如「从根节点1开始！」",
+          "style": "font_size=24, C_AMBER_STK, BOLD, to_edge(DOWN, buff=0.5)"
+        }
+      ],
+      "animation_sequence": [
+        "Indicate(起始节点, scale_factor=1.3), run_time=0.5",
+        "set_fill(C_NODE_CURRENT)",
+        "FadeIn(指针/数据结构框)",
+        "FadeIn(说明文字)",
+        "wait(约4秒)"
+      ]
+    }
+  },
+  {
+    "id": "operation_2",
+    "segment_no": 5,
+    "type": "algo_steps",
+    "duration_hint_s": "14~20",
+    "narration": "【旁白】逐步讲解算法执行过程，说明每一步的状态变化。字数上限80字。",
+    "visual": {
+      "layout": "数据结构图保留，动态高亮当前操作节点/元素",
+      "algorithm_specific": {
+        "binary_tree": {
+          "current_node": "set_fill(C_NODE_CURRENT) + Indicate(scale=1.3)",
+          "visited_node": "set_fill(C_NODE_VISITED)，旁边 FadeIn 顺序编号①②③",
+          "backtrack": "DashedLine(child→parent, color='#94a3b8')，当前节点变 C_NODE_CURRENT",
+          "traversal_order": "animation_sequence 中列出各节点访问顺序"
+        },
+        "linked_list": {
+          "current_node": "set_fill(C_NODE_CURRENT)",
+          "pointer_move": "Arrow.animate.shift(RIGHT*1.4)，指针标签同步移动",
+          "insert": "FadeIn(新节点 from shift=DOWN*0.5)，旧Arrow FadeOut，新Arrow Create",
+          "delete": "FadeOut(节点+两侧Arrow)，新连接Arrow Create"
+        },
+        "binary_search": {
+          "mid_highlight": "cells[mid].animate.set_fill(C_RANGE_MID)",
+          "compare_show": "Text(比较符号) FadeIn 在 mid 格上方，wait(0.5)，FadeOut",
+          "range_mask": "Rectangle(fill=C_RANGE_L/R, opacity=0.45) 覆盖排除区间",
+          "update_pointer": "left/right Arrow.animate.move_to(新位置)"
+        },
+        "graph_bfs": {
+          "wave_expand": "AnimationGroup([Indicate(n) for n in level], lag_ratio=0.2)",
+          "mark_visited": "set_fill(C_NODE_VISITED)",
+          "queue_update": "FadeOut(旧队列内容) + FadeIn(新队列内容)"
+        },
+        "graph_dfs": {
+          "explore_edge": "edge.animate.set_stroke(C_EDGE_ACTIVE)",
+          "backtrack_edge": "edge.animate.set_stroke('#94a3b8')"
+        },
+        "sorting": {
+          "compare_pair": "两格同时 set_fill(C_SORT_CMP)，显示比较符号",
+          "swap": "a.animate.shift(RIGHT*0.7), b.animate.shift(LEFT*0.7)，set_fill(C_SORT_SWAP)",
+          "mark_done": "set_fill(C_SORT_DONE)"
+        }
+      },
+      "animation_sequence": [
+        "按题目的具体操作步骤逐一列出动画动作",
+        "每个关键状态变化对应一行 self.play()",
+        "适当使用 self.wait(0.5) 分隔步骤，让观众跟上节奏"
+      ],
+      "note": "本段是视频核心，动画步骤需与 narration text 的描述顺序完全对应"
+    }
+  },
+  {
+    "id": "result",
+    "segment_no": 6,
+    "type": "show_result",
+    "duration_hint_s": "7~10",
+    "narration": "【旁白】描述最终结果：遍历顺序/找到的位置/排序完成的数组。",
+    "visual": {
+      "layout": "数据结构图保留（节点变 C_NODE_RESULT 绿色），底部或右侧显示结果",
+      "elements": [
+        {
+          "role": "所有节点/元素变结果色",
+          "style": "set_fill(C_NODE_RESULT)，AnimationGroup lag_ratio=0.1"
+        },
+        {
+          "role": "结果显示",
+          "binary_tree": "底部 FadeIn RoundedRectangle + Text('[v1, v2, v3, ...]')",
+          "binary_search": "目标格单独高亮 + Text('找到了！索引 = X')",
+          "linked_list": "新链表状态最终展示",
+          "sorting": "全部格变绿色 + 显示已排序数组",
+          "style": "font_size=28, C_GREEN, BOLD；圆角框 fill=C_GREEN_DARK"
+        }
+      ],
+      "animation_sequence": [
+        "AnimationGroup([node.animate.set_fill(C_NODE_RESULT) for node in all_nodes], lag_ratio=0.15)",
+        "DrawBorderThenFill(结果框)",
+        "FadeIn(结果文字)",
+        "wait(约5秒)"
+      ]
+    }
+  },
+  {
+    "id": "summary",
+    "segment_no": 7,
+    "type": "answer_reveal",
+    "duration_hint_s": "10~14",
+    "narration": "【旁白】总结：报出最终答案，说明关键规则和时间复杂度。",
+    "visual": {
+      "layout": "清空前一段，居中铺满",
+      "elements": [
+        {
+          "role": "问题回顾",
+          "text": "如「中序遍历结果 =」",
+          "style": "font_size=34, C_MUTED，居中偏上 UP*1.8"
+        },
+        {
+          "role": "大号答案",
+          "text": "如「[4, 2, 5, 1, 3]」",
+          "style": "font_size=56, C_GREEN, BOLD；绿色圆角框 fill=C_GREEN_DARK"
+        },
+        {
+          "role": "关键规则提示框",
+          "text": "如「💡 左→根→右，时间复杂度 O(n)」",
+          "style": "font_size=22, C_AMBER_STK；橙色圆角框 fill=C_ORANGE_DARK"
+        }
+      ],
+      "animation_sequence": [
+        "FadeIn(问题回顾, shift=UP*0.3), run_time=0.5",
+        "DrawBorderThenFill(答案框), run_time=0.5",
+        "FadeIn(大号答案), run_time=0.6",
+        "DrawBorderThenFill(提示框), run_time=0.4",
+        "FadeIn(提示文字), run_time=0.4",
+        "wait(约8秒)"
+      ]
+    }
+  }
+]

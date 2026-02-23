@@ -1,0 +1,199 @@
+{
+  "_comment": "二分查找分镜模板 — 适用于：有序数组查找、upper/lower bound、旋转数组查找",
+  "_usage": "将此模板填入 storyboard.json，替换所有 FILL_IN 占位符",
+  "title": "FILL_IN_题目名称（如：二分查找目标值）",
+  "subject": "算法",
+  "algorithm_type": "binary_search",
+  "operation": "FILL_IN（search / lower_bound / upper_bound）",
+  "segments": [
+    {
+      "id": "intro",
+      "segment_no": 1,
+      "type": "title_card",
+      "duration_hint_s": "4~6",
+      "narration": "今天我们来学习「二分查找」，口诀是：每次缩小一半，很快就能找到！",
+      "visual": {
+        "layout": "居中铺满",
+        "elements": [
+          {"role": "主标题", "text": "二分查找", "style": "font_size=52, BOLD, WHITE"},
+          {"role": "副标题/口诀", "text": "每次缩小一半，O(log n) 超级快！", "style": "font_size=28, C_MUTED"}
+        ],
+        "animation_sequence": [
+          "FadeIn(主标题, shift=UP*0.3), run_time=0.8",
+          "FadeIn(副标题), run_time=0.5",
+          "wait(约3秒)",
+          "FadeOut(VGroup)"
+        ]
+      }
+    },
+    {
+      "id": "problem",
+      "segment_no": 2,
+      "type": "text_card",
+      "duration_hint_s": "10~16",
+      "narration": "FILL_IN_完整朗读题目。说明有序数组和要查找的目标值。",
+      "narration_example": "给定一个从小到大排好序的数组，里面有8个数：1、3、5、7、9、11、13、15。现在要找目标值7，找到了返回它的索引，找不到返回-1。",
+      "visual": {
+        "layout": "居中带圆角深蓝卡片",
+        "elements": [
+          {"role": "角标签", "text": "题  目", "style": "font_size=18, C_MUTED, to_corner(UL)"},
+          {
+            "role": "题目文本",
+            "lines": [
+              "FILL_IN_第一行（如：给定有序数组 nums = [1,3,5,7,9,11,13,15]）",
+              "FILL_IN_第二行（如：在数组中查找目标值 target = 7）",
+              "FILL_IN_第三行（如：找到返回索引，找不到返回 -1）"
+            ],
+            "style": "font_size=26, C_TEXT, 左对齐"
+          }
+        ],
+        "animation_sequence": [
+          "FadeIn(角标签)",
+          "DrawBorderThenFill(卡片)",
+          "FadeIn(文字)",
+          "wait(约10秒)",
+          "FadeOut(全部)"
+        ]
+      }
+    },
+    {
+      "id": "draw",
+      "segment_no": 3,
+      "type": "array_draw",
+      "duration_hint_s": "7~10",
+      "narration": "FILL_IN_描述画数组过程。画出格子，标出值和索引编号。",
+      "narration_example": "我们把这个有序数组画出来。每个格子里放一个数，下面标上索引编号，从0开始。",
+      "visual": {
+        "layout": "数组水平排列，整体居中，y=0；下方有索引标签",
+        "coordinate_system": "格子大小0.7，格子间距0（紧靠），整体 start_x = -(n-1)*0.35",
+        "manim_objects": {
+          "cell":    "make_cell(val, idx, pos)  → VGroup(Square(0.7), Text(val), Text(idx))",
+          "storage": "self._cells = [cell_VGroup, ...]  # 按索引顺序"
+        },
+        "layout_formula": {
+          "n": "len(arr_vals)",
+          "start_x": "-(n-1) * 0.35",
+          "cell_x": "start_x + i * 0.7"
+        },
+        "array_values": "FILL_IN_数组值（如：[1, 3, 5, 7, 9, 11, 13, 15]）",
+        "animation_sequence": [
+          "self.play(LaggedStart(*[FadeIn(c) for c in self._cells], lag_ratio=0.1), run_time=1.0)",
+          "wait(约5秒)"
+        ]
+      }
+    },
+    {
+      "id": "operation_1",
+      "segment_no": 4,
+      "type": "bisect_init",
+      "duration_hint_s": "7~10",
+      "narration": "FILL_IN_描述初始化指针。说明left和right的初始位置，计算第一个mid。",
+      "narration_example": "二分查找先把left指向最左边的索引0，right指向最右边的索引7。中间的mid等于（0+7）除以2，等于3，也就是索引3这个格子，值是7。",
+      "visual": {
+        "layout": "数组保留，下方出现 left↑ 和 right↑ 指针箭头，mid格变绿",
+        "pointers": {
+          "left":  "make_bisect_arrow(cells[0], 'left', color=C_RANGE_L)",
+          "right": "make_bisect_arrow(cells[-1], 'right', color=C_RANGE_R)",
+          "mid":   "make_bisect_arrow(cells[mid_idx], 'mid', color=C_RANGE_MID)"
+        },
+        "mid_calculation": {
+          "first_mid": "FILL_IN_mid = (0 + n-1) // 2",
+          "highlight":  "cells[mid_idx][0].animate.set_fill(C_RANGE_MID)"
+        },
+        "caption": "Text('mid = (0+7)÷2 = 3，arr[3]=FILL_IN_mid_val'，放在数组上方）",
+        "animation_sequence": [
+          "self.play(FadeIn(left_ptr), run_time=0.4)",
+          "self.play(FadeIn(right_ptr), run_time=0.4)",
+          "self.play(FadeIn(mid_ptr), cells[mid].animate.set_fill(C_RANGE_MID), run_time=0.5)",
+          "FadeIn(计算公式说明文字)",
+          "wait(约5秒)",
+          "FadeOut(计算说明文字)"
+        ],
+        "note": "存储：self._left_ptr, self._right_ptr, self._mid_ptr，以及当前 left_idx, right_idx, mid_idx"
+      }
+    },
+    {
+      "id": "operation_2",
+      "segment_no": 5,
+      "type": "bisect_step",
+      "duration_hint_s": "16~22",
+      "narration": "FILL_IN_描述第一次（和第二次）迭代。说明比较结果和范围缩小。不超过80字。",
+      "narration_examples": {
+        "found_at_first_mid": "arr[3]等于目标值7，找到了！不需要再继续了。",
+        "target_smaller": "arr[3]等于9，比目标值7大，所以target在左边，把right移到mid-1，也就是索引2。新的mid等于（0+2）除以2等于1。继续查找！",
+        "target_larger":  "arr[3]等于5，比target小，所以target在右边，把left移到mid+1，也就是索引4。新mid等于（4+7）除以2等于5。继续查找！"
+      },
+      "visual": {
+        "layout": "数组保留，动态更新指针位置和排除范围遮罩",
+        "one_iteration_steps": [
+          "1. 显示比较符号：Text('arr[mid]=FILL_IN_val  vs  target=FILL_IN_target')，放在数组上方",
+          "2. 若 arr[mid] == target：目标格变 C_NODE_RESULT，跳到 result 段",
+          "3. 若 arr[mid] < target（target 在右边）：",
+          "   a. 显示 Text('target 在右边，left = mid+1') ",
+          "   b. left_ptr.animate.move_to(cells[mid+1][0].get_bottom() + DOWN*0.3)",
+          "   c. make_range_mask(cells, 0, mid, C_RANGE_L) — 左侧遮罩 FadeIn",
+          "   d. cells[mid][0].animate.set_fill(C_NODE_VISITED)  # mid 格变灰",
+          "   e. 重新计算 new_mid，cells[new_mid][0].animate.set_fill(C_RANGE_MID)",
+          "   f. mid_ptr.animate.move_to(新位置)",
+          "4. 若 arr[mid] > target（target 在左边）：",
+          "   a. 类似，right_ptr 左移，右侧遮罩 C_RANGE_R FadeIn",
+          "   b. 重新计算 new_mid"
+        ],
+        "iteration_count": "FILL_IN_迭代次数（通常展示2~3次迭代就够说明原理）",
+        "range_mask_notes": "make_range_mask(cells, start, end, color) 返回半透明遮罩 Rectangle，直接 FadeIn 覆盖在格子上"
+      }
+    },
+    {
+      "id": "result",
+      "segment_no": 6,
+      "type": "bisect_result",
+      "duration_hint_s": "6~9",
+      "narration": "FILL_IN_描述最终结果：找到/未找到。",
+      "narration_examples": {
+        "found":     "找到了！目标值7就在索引3的位置，返回3。",
+        "not_found": "left已经超过right，说明数组里没有目标值，返回-1。"
+      },
+      "visual": {
+        "found_path": {
+          "elements": [
+            "目标格：cells[result_idx][0].animate.set_fill(C_NODE_RESULT)",
+            "Indicate(目标格, scale_factor=1.3)",
+            "result_box('找到了！索引 = FILL_IN_idx')，to_edge(DOWN)"
+          ]
+        },
+        "not_found_path": {
+          "elements": [
+            "所有格变灰：AnimationGroup([c[0].animate.set_fill('#374151') for c in cells])",
+            "result_box('未找到，返回 -1'，fill=C_RANGE_R)"
+          ]
+        }
+      }
+    },
+    {
+      "id": "summary",
+      "segment_no": 7,
+      "type": "answer_reveal",
+      "duration_hint_s": "10~14",
+      "narration": "FILL_IN_总结答案和关键规则。不超过50字。",
+      "narration_examples": {
+        "found":     "二分查找的答案是索引3。记住口诀：每次砍掉一半，所以时间复杂度是O(log n)。8个数只需要最多3次就能找到！",
+        "not_found": "目标值不在数组里，返回-1。二分查找的核心是有序数组，每次把搜索范围缩小一半。"
+      },
+      "visual": {
+        "layout": "清空前一段，居中铺满",
+        "elements": [
+          {"role": "问题回顾", "text": "FILL_IN（如：target=7 的索引 =）", "style": "font_size=34, C_MUTED"},
+          {"role": "大号答案", "text": "FILL_IN（如：索引 3 / 未找到 -1）", "style": "result_box, font_size=56"},
+          {"role": "关键提示", "text": "💡 每次缩小一半，时间复杂度 O(log n)", "style": "insight_box"}
+        ],
+        "animation_sequence": [
+          "FadeOut(self._result_grp)",
+          "FadeIn(问题回顾)",
+          "DrawBorderThenFill(答案框) + FadeIn(答案)",
+          "DrawBorderThenFill(提示框) + FadeIn(提示)",
+          "wait(约8秒)"
+        ]
+      }
+    }
+  ]
+}
