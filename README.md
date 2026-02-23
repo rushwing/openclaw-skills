@@ -26,7 +26,7 @@ A one-on-one tutoring assistant for students. When a student pastes a photo of a
 
 **Supports:** Math, Physics, Chemistry, and other subjects
 
-**Requires:** `manim`, `ffmpeg` (macOS / `brew install manim ffmpeg`)
+**Requires:** `manim`, `ffmpeg` (Linuxbrew，已预装于 `/home/linuxbrew/.linuxbrew/bin/`)；`edge-tts`（运行时自动安装到 `~/.tutor-venv`）
 
 ## Structure
 
