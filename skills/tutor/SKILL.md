@@ -2,14 +2,54 @@
 name: tutor
 description: 一对一辅导老师，适用于学生粘贴题目图片时。自动分析题目、生成中文HTML讲解文档、智能归档到分类目录，并可选生成带配音的Manim动画教学视频。支持数学、物理、化学等各科目。重要：当用户从 Telegram 上传图片时，OpenClaw 会通过 telegram-media-adapter hook 自动注入图片元数据到消息上下文中，可通过 context.metadata.telegram_media 读取。优先使用此方式获取文件信息。
 license: MIT
-compatibility: macOS（需要预装 manim 和 ffmpeg）
-metadata: {"openclaw": {"emoji": "🎓", "os": ["darwin"], "requires": {"bins": ["ffmpeg", "manim"]}, "install": [{"id": "brew-ffmpeg", "kind": "brew", "formula": "ffmpeg", "bins": ["ffmpeg"], "label": "Install ffmpeg (brew)"}, {"id": "brew-manim", "kind": "brew", "formula": "manim", "bins": ["manim"], "label": "Install manim (brew)"}]}}
+compatibility: Raspberry Pi 5（Raspberry Pi OS Lite，需预装 linuxbrew 版 manim 和 ffmpeg）
+metadata: {"openclaw": {"emoji": "🎓", "os": ["linux"], "requires": {"bins": ["ffmpeg", "manim"]}}}
 ---
 
 # Tutor — 一对一辅导老师
 
 > **`SKILL_DIR`** = 本 skill 所在目录（如 `~/.openclaw/skills/tutor`）。
 > 下文所有脚本命令均以此为基准，使用时替换为实际路径。
+
+---
+
+## 环境依赖策略
+
+本 skill 运行于 **Raspberry Pi 5（Raspberry Pi OS Lite，无桌面环境）**，依赖管理分两类：
+
+### 已预装（通过 Linuxbrew）
+
+以下工具已安装到 `/home/linuxbrew/.linuxbrew/bin/`，可直接调用，**无需重复安装**：
+
+| 工具 | 路径 | 说明 |
+|------|------|------|
+| `manim` | `/home/linuxbrew/.linuxbrew/bin/manim` | 数学动画渲染（已内置 ffmpeg） |
+| `ffmpeg` | `/home/linuxbrew/.linuxbrew/bin/ffmpeg` | 音视频处理 |
+
+> **注意**：Raspberry Pi OS Lite 系统自带的 `/usr/bin/ffmpeg` 可能缺少 `libx264` 等编码器。务必使用 brew 版本。如果命令找不到，手动指定路径：
+> ```bash
+> export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
+> ```
+
+### 需运行时安装（Python venv）
+
+`edge-tts` 不通过 brew 安装，需在固定 venv 中管理：
+
+```bash
+# 首次创建 venv（如果不存在）
+VENV_DIR="$HOME/.tutor-venv"
+if [ ! -d "$VENV_DIR" ]; then
+  python3 -m venv "$VENV_DIR"
+  "$VENV_DIR/bin/pip" install --upgrade pip edge-tts
+fi
+
+# 后续直接激活使用
+source "$VENV_DIR/bin/activate"
+```
+
+> **前提**：`python3-venv` 必须已安装。若未安装：`sudo apt-get install python3-venv`
+
+---
 
 ## 工作流程总览
 
@@ -19,112 +59,31 @@ metadata: {"openclaw": {"emoji": "🎓", "os": ["darwin"], "requires": {"bins": 
 
 ## 第一步：获取题目图片
 
-### 方式 A：通过 Telegram 上传（推荐）
+### 方式 A：从 inbound 目录读取（推荐）
 
-当用户从 Telegram 上传图片时，`telegram-media-adapter` hook 会自动注入图片元数据到消息上下文中。
+OpenClaw 会自动将收到的图片下载到 `/home/openclaw/.openclaw/media/inbound/` 目录。
 
-**第 1 步：从 metadata 读取 file_id**
-
-`context.metadata.telegram_media` 已由 hook 注入，直接读取：
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `file_id` | string | Telegram 文件 ID，用于下载 |
-| `contentType` | string | `image` / `document` |
-| `message_id` | number | Telegram 消息 ID |
-| `chat_id` | number | 聊天 ID |
-| `caption` | string | 图片 caption 或消息文本 |
-
-**第 2 步：获取 Bot Token**
-
-按以下顺序查找 Bot Token：
+**查找最新的图片文件：**
 
 ```bash
-# 1. 优先读取环境变量
-BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}"
+# 查找最新的图片文件
+INBOUND_DIR="/home/openclaw/.openclaw/media/inbound"
+IMAGE_PATH=$(ls -t "$INBOUND_DIR"/*.{jpg,jpeg,png,gif} 2>/dev/null | head -1)
 
-# 2. 若无环境变量，从 OpenClaw 配置文件中自动提取
-if [ -z "$BOT_TOKEN" ]; then
-  BOT_TOKEN=$(python3 - <<'EOF'
-import json, os, glob
-
-def find_token(obj):
-    if isinstance(obj, dict):
-        for k, v in obj.items():
-            if k in ('token', 'bot_token', 'botToken') and isinstance(v, str) and ':' in v:
-                return v
-            r = find_token(v)
-            if r:
-                return r
-    elif isinstance(obj, list):
-        for item in obj:
-            r = find_token(item)
-            if r:
-                return r
-    return None
-
-for path in glob.glob(os.path.expanduser('~/.openclaw/**/*.json'), recursive=True):
-    try:
-        t = find_token(json.load(open(path)))
-        if t:
-            print(t)
-            break
-    except Exception:
-        pass
-EOF
-  )
-fi
-
-if [ -z "$BOT_TOKEN" ]; then
-  echo "ERROR: Bot token not found. Set TELEGRAM_BOT_TOKEN or check ~/.openclaw config."
-  exit 1
-fi
-```
-
-**第 3 步：调用 getFile 获取下载路径**
-
-```bash
-FILE_ID="<context.metadata.telegram_media.file_id>"
-
-RESPONSE=$(curl -sf "https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${FILE_ID}")
-if [ $? -ne 0 ]; then
-  echo "ERROR: Telegram getFile API call failed"
+if [ -z "$IMAGE_PATH" ]; then
+  echo "ERROR: No image found in $INBOUND_DIR"
   exit 1
 fi
 
-FILE_PATH=$(echo "$RESPONSE" | python3 -c "
-import json, sys
-d = json.load(sys.stdin)
-if not d.get('ok'):
-    print('ERROR: ' + str(d), file=sys.stderr)
-    sys.exit(1)
-print(d['result']['file_path'])
-")
+echo "Using image: $IMAGE_PATH"
 ```
 
-**第 4 步：下载文件到 uploads/ 目录**
+**读取图片数据：**
 
 ```bash
-UPLOADS_DIR="${HOME}/.openclaw/workspace/uploads"
-mkdir -p "$UPLOADS_DIR"
-
-# 用 file_id 前缀命名，保留原始扩展名，避免冲突
-EXT="${FILE_PATH##*.}"
-SHORT_ID=$(echo "$FILE_ID" | cut -c1-16)
-LOCAL_PATH="${UPLOADS_DIR}/tg_${SHORT_ID}.${EXT}"
-
-curl -sf "https://api.telegram.org/file/bot${BOT_TOKEN}/${FILE_PATH}" -o "$LOCAL_PATH"
-if [ $? -ne 0 ]; then
-  echo "ERROR: File download failed"
-  exit 1
-fi
-
-echo "Downloaded: $LOCAL_PATH"
+IMAGE_DATA=$(base64 "$IMAGE_PATH")
+# 或直接传入文件路径给后续步骤
 ```
-
-下载成功后，`LOCAL_PATH` 即为本地图片路径，传入后续分析步骤使用。
-
-> **回退策略**：若 API 调用失败（网络不通、token 失效），检查 `~/.openclaw/workspace/uploads/` 目录中按修改时间排序的最新文件作为备用。
 
 ### 方式 B：直接读取本地图片
 
@@ -427,15 +386,25 @@ python {SKILL_DIR}/scripts/generate_manim.py storyboard.json TutorScene.py
 
 ### 7.2 渲染动画
 
-```bash
-# 快速预览（低分辨率）
-manim -pql TutorScene.py TutorScene
+> **Raspberry Pi OS Lite（无桌面环境）注意**：不能使用 `-p`（渲染后自动预览）flag，否则会报错找不到显示器。统一去掉 `-p`，使用纯渲染模式。
 
-# 正式渲染（高分辨率，用于最终视频）
-manim -pqh TutorScene.py TutorScene
+```bash
+# 快速渲染（480p，适合 Pi 性能验证）
+manim -ql TutorScene.py TutorScene
+
+# 正式渲染（720p，Pi 5 上性能与画质平衡）
+manim -qm TutorScene.py TutorScene
+
+# 高清渲染（1080p60，耗时较长，约数分钟）
+manim -qh TutorScene.py TutorScene
 ```
 
-输出目录：`media/videos/TutorScene/1080p60/`
+输出目录：
+- 480p：`media/videos/TutorScene/480p15/`
+- 720p：`media/videos/TutorScene/720p30/`
+- 1080p：`media/videos/TutorScene/1080p60/`
+
+> **ffmpeg 编码器说明**：Manim 内部使用 brew 版 ffmpeg（随 manim 一同安装），渲染时会自动选用 `libx264` 编码，无需额外配置。若渲染报 codec 错误，检查 PATH 是否包含 `/home/linuxbrew/.linuxbrew/bin`。
 
 ### 7.3 高亮策略
 
@@ -455,10 +424,15 @@ manim -pqh TutorScene.py TutorScene
 - **首次运行**：自动创建 venv 并安装 `edge-tts`，然后在 venv 内重新执行自身
 - **后续运行**：检测到已在 venv 内则直接跳过安装，复用现有环境
 
+> **前提**：系统需已安装 `python3-venv`。若报错，先执行：
+> ```bash
+> sudo apt-get install -y python3-venv
+> ```
+
 无需手动安装，直接运行即可：
 
 ```bash
-python {SKILL_DIR}/scripts/generate_audio.py narration.json audio/
+python3 {SKILL_DIR}/scripts/generate_audio.py narration.json audio/
 ```
 
 输出：
@@ -498,13 +472,20 @@ python {SKILL_DIR}/scripts/generate_audio.py narration.json audio/
 当 Manim 输出为单一文件时，直接合并音频：
 
 ```bash
-ffmpeg -i media/videos/TutorScene/1080p60/TutorScene.mp4 \
+# Raspberry Pi：显式指定 libx264 + aac，避免系统默认编码器缺失问题
+ffmpeg -i media/videos/TutorScene/720p30/TutorScene.mp4 \
        -i audio/combined.mp3 \
        -map 0:v -map 1:a \
-       -c:v copy -c:a aac \
+       -c:v libx264 -preset fast -crf 23 \
+       -c:a aac -b:a 128k \
        -shortest \
        最终讲解视频.mp4
 ```
+
+> **编码说明**：
+> - `-c:v libx264 -preset fast`：软件编码，brew 版 ffmpeg 已内置，树莓派 Pi 5 支持
+> - `-crf 23`：质量与文件大小平衡（越小质量越高，18-28 为常用范围）
+> - 不要使用 `-c:v copy`（原视频若为 yuv420p 以外的格式会报错），也不要依赖 `h264_omx`（Pi 5 已废弃）
 
 ### 9.2 多段合成（完整流程）
 
@@ -526,34 +507,13 @@ python {SKILL_DIR}/scripts/synthesize_video.py manifest.json 最终讲解视频.
 
 ## 依赖清单
 
-| 工具 | 安装方式 | 用途 |
-|------|---------|------|
-| `manim` | `brew install manim`（预装，勿重复安装） | 数学动画渲染 |
-| `edge-tts` | 脚本自动在 `~/.tutor-venv` 中安装 | 中文配音合成 |
-| `ffmpeg` | `brew install ffmpeg` | 音视频处理 |
-| KaTeX CDN | HTML自动加载 | HTML中的公式渲染 |
-
-## Hook 依赖
-
-本 skill 依赖 `telegram-media-adapter` hook 来获取 Telegram 媒体元数据。
-
-**确保在 `openclaw.json` 中启用**：
-```json
-{
-  "hooks": {
-    "internal": {
-      "enabled": true,
-      "entries": {
-        "telegram-media-adapter": {
-          "enabled": true
-        }
-      }
-    }
-  }
-}
-```
-
-启用后，收到 Telegram 图片消息时，hook 会自动注入 `telegram_media` 到消息 metadata 中，skill 可直接读取使用。
+| 工具 | 状态 | 路径 / 安装方式 | 用途 |
+|------|------|----------------|------|
+| `manim` | **预装（Linuxbrew）** | `/home/linuxbrew/.linuxbrew/bin/manim` | 数学动画渲染 |
+| `ffmpeg` | **预装（Linuxbrew，manim 依赖自带）** | `/home/linuxbrew/.linuxbrew/bin/ffmpeg` | 音视频处理 |
+| `edge-tts` | **运行时安装** | `~/.tutor-venv`（Python venv） | 中文配音合成 |
+| `python3-venv` | 系统包（按需） | `sudo apt-get install python3-venv` | 创建 edge-tts venv 的前提 |
+| KaTeX CDN | 自动加载 | HTML 内联 CDN | HTML 中的公式渲染 |
 
 ## 文件结构参考
 
