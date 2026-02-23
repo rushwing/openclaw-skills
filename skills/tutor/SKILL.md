@@ -1,6 +1,6 @@
 ---
 name: tutor
-description: 一对一辅导老师，适用于学生粘贴题目图片时。自动分析题目、生成中文HTML讲解文档、智能归档到分类目录，并可选生成带配音的Manim动画教学视频。支持数学、物理、化学等各科目。重要：当用户从 Telegram 上传图片时，OpenClaw 会通过 telegram-media-adapter hook 自动注入图片元数据到消息上下文中，可通过 context.metadata.telegram_media 读取。优先使用此方式获取文件信息。
+description: 一对一辅导老师，适用于学生粘贴题目图片时。自动分析题目、生成中文HTML讲解文档、智能归档到分类目录，并可选生成带配音的Manim动画教学视频。支持数学、物理、化学等各科目。图片从 OpenClaw inbound 目录自动读取。
 license: MIT
 compatibility: Raspberry Pi 5（Raspberry Pi OS Lite，需预装 linuxbrew 版 manim 和 ffmpeg）
 metadata: {"openclaw": {"emoji": "🎓", "os": ["linux"], "requires": {"bins": ["ffmpeg", "manim"]}}}
