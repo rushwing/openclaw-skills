@@ -39,11 +39,14 @@ brew install manim
 > - **KaTeX**（CDN）：浏览器端 JS 库，仅用于 HTML 文件在浏览器中渲染公式，无需系统安装。
 > - **系统 LaTeX**（TeXLive）：Manim 的 `MathTex()` 类依赖它将 LaTeX 编译为 SVG。**缺失时动画中所有数学公式消失**，Manim 会降级为纯文字/幻灯片方式。
 
-安装（约 150 MB）：
+安装（约 300 MB）：
 
 ```bash
-sudo apt-get install -y texlive-latex-base texlive-fonts-recommended dvipng cm-super
+sudo apt-get update
+sudo apt-get install -y texlive-latex-base texlive-latex-extra texlive-fonts-recommended dvipng cm-super
 ```
+
+> **说明**：`texlive-latex-extra` 包含 Manim `MathTex` 所需的 `standalone.cls`。macOS 下 `brew install manim` 会自动拉取 `mactex-no-gui` 依赖（安装到 `/Library/TeX/texbin/`），因此无需手动安装；Linux/树莓派需要此步骤。
 
 验证：
 
