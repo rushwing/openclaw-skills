@@ -455,6 +455,11 @@ figure = VGroup(circ, radius_line, r_lbl)
   - 步骤4：`#d97706`（琥珀）
   - 步骤5：`#dc2626`（红）
 - 公式写成 LaTeX 格式（不含外层 `$`，脚本会自动加）
+- **`formula` 字段只放纯 LaTeX 数学公式**（如 `$x^2 = 64$`）；**不得混入中文**，中文说明放 `content_lines`
+  - ✅ 正确：`"formula": "$S_{阴影} = S_1 - S_2$"` 中若必须带中文，直接写入 `content_lines`，formula 只保留纯符号
+  - ❌ 错误：`"formula": "$阴影面积 = 64 - 4\\pi$"`（MathTex 无法编译中文，会报 LaTeX Unicode 错误）
+  - 若公式含中文，脚本会自动降级为 `Text` 渲染（不走 LaTeX），视觉上仍有高亮框
+- `manim_figure_code` 中的标注：纯数学变量用 `MathTex`，含中文的标注用 `Text("...", font=CHINESE_FONT)` 或 `self._tx(...)`（脚本顶部有定义）
 - 每段 narration 约 10–25 字，语速自然
 
 ### 生成 narration 音频列表

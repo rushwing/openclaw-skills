@@ -90,6 +90,7 @@ Step highlight colors (suggested palette):
     Step 6: #0891b2 (cyan)
 """
 
+import re
 import sys
 import json
 from pathlib import Path
@@ -97,6 +98,13 @@ from textwrap import indent
 
 
 STEP_COLORS = ["#7c3aed", "#2563eb", "#059669", "#d97706", "#dc2626", "#0891b2"]
+
+_CJK_RE = re.compile(r'[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef]')
+
+
+def has_chinese(s: str) -> bool:
+    """Return True if *s* contains any CJK characters."""
+    return bool(_CJK_RE.search(s))
 
 MANIM_HEADER = '''\
 from manim import *
@@ -255,8 +263,31 @@ def segment_solution_step(seg: dict) -> str:
 
     formula_block = ""
     if formula:
-        formula_block = f'''\
-        formula_tex = MathTex(r"{formula.strip('$')}", color=WHITE, font_size=38)
+        formula_stripped = formula.strip('$')
+        if has_chinese(formula_stripped):
+            # Chinese text cannot be compiled by LaTeX; use Text instead of MathTex.
+            formula_block = f'''\
+        formula_tex = self._tx("{formula_stripped}", font_size=36, color=WHITE)
+        formula_box = BackgroundRectangle(formula_tex,
+                                          color="{color}",
+                                          fill_opacity=0.25,
+                                          buff=0.2)
+        formula_grp = VGroup(formula_box, formula_tex)
+        formula_grp.next_to(content_group, DOWN, buff=0.3)
+        step_all = VGroup(badge_grp, step_title_txt, content_group, formula_grp)
+        step_all.arrange(DOWN, aligned_edge=LEFT, buff=0.25)
+        step_all.move_to(ORIGIN)
+        self.play(FadeIn(step_title_txt, badge_grp),       run_time=0.5)
+        self.play(FadeIn(content_group, shift=RIGHT*0.1),  run_time=0.5)
+        self.play(FadeIn(formula_box, formula_tex),        run_time=0.7)
+        indicator = self._highlight_box(formula_tex, "{color}")
+        self.play(Create(indicator),    run_time=0.4)
+        self.wait(2)
+        self.play(FadeOut(VGroup(badge_grp, step_title_txt, content_group, formula_grp, indicator)),
+                  run_time=0.5)'''
+        else:
+            formula_block = f'''\
+        formula_tex = MathTex(r"{formula_stripped}", color=WHITE, font_size=38)
         formula_box = BackgroundRectangle(formula_tex,
                                           color="{color}",
                                           fill_opacity=0.25,
