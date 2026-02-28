@@ -1,45 +1,52 @@
-# openclaw-skills
+# everything_openclaw
 
-Custom skills for [OpenClaw](https://openclaw.ai), organized under `skills/`.
+Personal OpenClaw hub: knowledge base, custom skills, MCP servers, plugins,
+hooks, and persona presets.
 
-## Skills
+> **For AI assistants**: Read `CLAUDE.md` first, then `openclaw/OVERVIEW.md`
+> for key concepts. Drill into `openclaw/*.md` as needed.
+
+## What's Here
+
+| Directory | Contents |
+|-----------|----------|
+| `openclaw/` | Extracted OpenClaw knowledge docs (architecture, skills, plugins, hooks, MCP, deployment…) |
+| `personas/` | Custom SOUL.md / AGENTS.md / IDENTITY.md presets for different deployments |
+| `skills/` | Custom skills installable by OpenClaw |
+| `mcps/` | Custom MCP server projects |
+| `plugins/` | Custom OpenClaw plugins/extensions |
+| `hooks/` | Custom OpenClaw event hooks |
+
+## Custom Skills
 
 | Skill | Description | Requires |
 |-------|-------------|---------|
 | 📚 `github-kb` | GitHub knowledge base manager — local repo index with one-line summaries in `CLAUDE.md`, offline-first exploration before live queries | `gh` CLI |
-| 🎓 `tutor` | One-on-one tutoring for students (math/physics/chemistry etc.) — analyzes problem photos, generates Chinese HTML explanations with dedup, optionally produces narrated Manim animation videos | `manim`, `ffmpeg`, `edge-tts` |
-| 💻 `kids-coding` | Children's programming coach — given a URL/text/image of a coding problem, generates a Mermaid flowchart + solution steps HTML, and optionally an algorithm animation video (binary tree, linked list, binary search, graph BFS/DFS/Dijkstra, sorting) | `manim`, `ffmpeg`, `edge-tts` |
+| 🎓 `tutor` | One-on-one tutoring (math/physics/chemistry) — analyzes problem photos, generates Chinese HTML explanations, optionally produces narrated Manim animation videos | `manim`, `ffmpeg`, `edge-tts` |
+| 💻 `kids-coding` | Children's programming coach — generates Mermaid flowcharts + HTML solution steps, optionally algorithm animation videos | `manim`, `ffmpeg`, `edge-tts` |
 
-## Structure
+## OpenClaw Knowledge Base (`openclaw/`)
 
-```
-skills/
-├── github-kb/
-│   ├── SKILL.md
-│   └── references/gh-commands.md
-├── tutor/
-│   ├── SKILL.md
-│   ├── DEPENDENCIES.md
-│   ├── assets/
-│   │   ├── narration_template.json   # Enhanced 7-segment storyboard format
-│   │   ├── TutorScene_template.py    # Manim skeleton (geometry problems)
-│   │   └── LLM_PROMPT_GUIDE.md      # 3-step workflow for weak LLMs
-│   └── scripts/
-│       ├── generate_manim.py
-│       ├── generate_audio.py
-│       └── synthesize_video.py
-└── kids-coding/
-    ├── SKILL.md
-    ├── DEPENDENCIES.md
-    ├── assets/
-    │   ├── narration_template.json   # Generic 7-segment template
-    │   ├── TutorScene_template.py    # Manim skeleton (algorithm animations)
-    │   ├── LLM_PROMPT_GUIDE.md      # 3-step workflow for weak LLMs
-    │   └── algorithms/
-    │       ├── binary_tree.json      # Binary tree traversal / BST
-    │       ├── linked_list.json      # Linked list reverse / insert / delete
-    │       ├── binary_search.json    # Binary search with range masks
-    │       ├── graph.json            # BFS / DFS / Dijkstra
-    │       └── sorting.json          # Bubble / selection / insertion sort
-    └── scripts/                      # Shared: symlink or reference tutor/scripts
-```
+Progressive disclosure — start from the top, go deeper as needed:
+
+| File | Topic |
+|------|-------|
+| [OVERVIEW.md](openclaw/OVERVIEW.md) | What OpenClaw is, key concepts, glossary |
+| [architecture.md](openclaw/architecture.md) | Gateway, channels, nodes, session model, tools |
+| [skills.md](openclaw/skills.md) | Skill structure, loading precedence, gating, config |
+| [plugins.md](openclaw/plugins.md) | Plugin types, discovery, security, config |
+| [hooks.md](openclaw/hooks.md) | Hook events, structure, handler examples |
+| [mcp.md](openclaw/mcp.md) | MCP integration via mcporter |
+| [workspace.md](openclaw/workspace.md) | Workspace file layout (AGENTS/SOUL/TOOLS…) |
+| [channels.md](openclaw/channels.md) | Supported channels, DM policy, group config |
+| [deployment.md](openclaw/deployment.md) | Local / Docker / Tailscale / Raspberry Pi |
+| [commands.md](openclaw/commands.md) | Chat commands (/new, /think, /compact…) |
+
+## Why This Repo?
+
+When developing OpenClaw skills, MCPs, plugins, or hooks, load this repo as
+context (via CLAUDE.md or github-kb skill) to get the essential OpenClaw
+knowledge without pasting docs into every conversation.
+
+The `personas/` directory lets you version-control your agent's identity files
+and easily restore them when setting up a new OpenClaw instance.
