@@ -83,7 +83,7 @@ check_gh_cli() {
 generate_cron_command() {
     # TZ 必须在 crontab 文件顶部声明才能影响调度时间，不能仅作为行内前缀。
     # 此处只生成 cron 时间 + 命令，TZ 行由 install_cronjob 单独写入 crontab。
-    local cron_cmd="$CRON_SCHEDULE cd $PROJECT_DIR && $PYTHON_CMD $SYNC_SCRIPT >> $PROJECT_DIR/log/cron.log 2>&1"
+    local cron_cmd="$CRON_SCHEDULE cd $PROJECT_DIR && $PYTHON_CMD $SYNC_SCRIPT >> $PROJECT_DIR/logs/cron.log 2>&1"
     echo "$cron_cmd"
 }
 

@@ -4,3 +4,10 @@ dist/
 .idea/
 **/__pycache__/
 *.pyc
+
+# Venv
+.tutor-venv/
+.venv/
+
+# Sync logs
+logs/
