@@ -38,10 +38,18 @@ git:
 # 日志配置
 logging:
   # 日志目录（相对项目根目录）
-  log_dir: "logs"
+  log_dir: "log"
   # 日志级别: DEBUG, INFO, WARNING, ERROR
   level: "INFO"
   # 日志文件保留月数
   retention_months: 6
   # 控制台输出
   console_output: true
+
+# Telegram 通知配置
+# bot_token: 从 @BotFather 获取
+# chat_id: 目标对话 ID（个人/群组均可，可用 @userinfobot 查询）
+telegram:
+  enabled: false
+  bot_token: ""
+  chat_id: ""
