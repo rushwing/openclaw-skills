@@ -336,12 +336,13 @@ def main() -> int:
 
     # ── Logging ───────────────────────────────────────────────────────────────
     log_cfg = config.get("logging", {})
-    log_dir = PROJECT_ROOT / log_cfg.get("log_dir", "log")
+    log_dir = PROJECT_ROOT / log_cfg.get("log_dir", "logs")
     setup_logging(
         log_dir=log_dir,
         level=log_cfg.get("level", "INFO"),
         console_output=log_cfg.get("console_output", True),
     )
+
 
     logger.info("=" * 60)
     logger.info("OpenClaw Sync started")
