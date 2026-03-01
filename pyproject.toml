@@ -1,0 +1,26 @@
+[project]
+name = "everything-openclaw"
+version = "0.1.0"
+description = "Personal OpenClaw hub — skills, personas, hooks, MCP servers"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # ── TTS ──────────────────────────────────────────────────────────────────
+    # skills/tutor          → generate_audio.py (Chinese narration)
+    # skills/kids-coding    → generate_audio.py (algorithm explanation audio)
+    # personas/child_tutor/english_partner → pronunciation playback via edge-tts
+    "edge-tts>=6.1.9",
+
+    # ── Web scraping ──────────────────────────────────────────────────────────
+    # skills/kids-coding → fetch problem content from LeetCode / 洛谷
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# No Python package sources in this repo — only dependency declaration.
+packages = []
