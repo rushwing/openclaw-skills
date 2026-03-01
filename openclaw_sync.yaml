@@ -1,0 +1,47 @@
+# OpenClaw Sync Configuration
+# 用于配置从树莓派 workspace 同步到 everything_openclaw personas/ 目录的文件和文件夹
+
+# 源目录：树莓派 workspace 路径
+source_dir: "/home/openclaw/.openclaw/workspace"
+
+# 目标目录：everything_openclaw personas/ 下的子目录
+target_subdir: "openclaw_main_agent"
+
+# 需要同步的文件和文件夹列表
+# 支持文件路径或目录路径，相对 source_dir
+sync_items:
+  - "AGENTS.md"
+  - "IDENTITY.md"
+  - "SOUL.md"
+  - "TOOLS.md"
+  - "USER.md"
+  - "memory/"
+
+# Git 配置
+git:
+  # 提交信息前缀
+  commit_prefix: "[sync]"
+  # 默认分支
+  default_branch: "main"
+  # PR 标题模板
+  pr_title_template: "Sync: Update persona files from workspace"
+  # PR 正文模板
+  pr_body_template: |
+    Automated sync of persona files from Raspberry Pi workspace.
+    
+    Synced items:
+    {synced_items}
+    
+    ---
+    *This PR was created automatically by openclaw_sync.py*
+
+# 日志配置
+logging:
+  # 日志目录（相对项目根目录）
+  log_dir: "logs"
+  # 日志级别: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+  # 日志文件保留月数
+  retention_months: 6
+  # 控制台输出
+  console_output: true
