@@ -19,6 +19,13 @@ A preset is a collection of any of these workspace files:
 | `TOOLS.md` | Tool usage instructions |
 | `memory/` | Pre-seeded memory snapshots |
 
+## Current Presets
+
+| Preset | Description |
+|--------|-------------|
+| `child_tutor/` | Multi-profile tutoring system for children's education (math, chinese, english) |
+| `daniel_machine/` | AI infrastructure and distributed systems engineering assistant |
+
 ## Suggested Structure
 
 ```
