@@ -5,10 +5,11 @@
 set -euo pipefail
 
 # 配置
-CRON_SCHEDULE="0 19 * * 5"  # 每周五 19:00 (北京时间)
+CRON_SCHEDULE="0 19 * * 5"  # 每周五 19:00 (北京时间 CST/Asia/Shanghai)
 SCRIPT_NAME="openclaw_sync.py"
 PROJECT_DIR="/home/openclaw/.openclaw/workspace/everything_openclaw"
-VENV_DIR="$PROJECT_DIR/.tutor-venv"
+# setup_env.sh 将 venv 创建在 $HOME/.tutor-venv，而非项目内部
+VENV_DIR="$HOME/.tutor-venv"
 PYTHON_CMD="$VENV_DIR/bin/python"
 SYNC_SCRIPT="$PROJECT_DIR/scripts/$SCRIPT_NAME"
 CRON_COMMENT="# OpenClaw Persona Sync - runs every Friday at 7PM CST"
@@ -80,54 +81,61 @@ check_gh_cli() {
 
 # 生成 cron 命令
 generate_cron_command() {
-    # 需要设置时区为北京时间，并激活虚拟环境后执行脚本
-    local cron_cmd="$CRON_SCHEDULE cd $PROJECT_DIR && TZ=Asia/Shanghai $PYTHON_CMD $SYNC_SCRIPT >> $PROJECT_DIR/logs/cron.log 2>&1"
+    # TZ 必须在 crontab 文件顶部声明才能影响调度时间，不能仅作为行内前缀。
+    # 此处只生成 cron 时间 + 命令，TZ 行由 install_cronjob 单独写入 crontab。
+    local cron_cmd="$CRON_SCHEDULE cd $PROJECT_DIR && $PYTHON_CMD $SYNC_SCRIPT >> $PROJECT_DIR/log/cron.log 2>&1"
     echo "$cron_cmd"
 }
 
 # 安装 cronjob
 install_cronjob() {
     log_info "Installing cronjob..."
-    
+
     local cron_cmd
     cron_cmd=$(generate_cron_command)
     local full_entry="$CRON_COMMENT
 $cron_cmd"
-    
+
     # 获取当前用户的 crontab
     local current_crontab
     current_crontab=$(crontab -l 2>/dev/null || true)
-    
+
     # 检查是否已存在相同的 cronjob
     if echo "$current_crontab" | grep -q "$SCRIPT_NAME"; then
         log_warn "Cronjob for $SCRIPT_NAME already exists"
-        
-        # 询问是否更新
+
         read -rp "Do you want to update it? (y/N): " answer
         if [[ ! "$answer" =~ ^[Yy]$ ]]; then
             log_info "Skipping cronjob installation"
             return 0
         fi
-        
-        # 删除旧的 cronjob条目
-        current_crontab=$(echo "$current_crontab" | grep -v "$SCRIPT_NAME" | grep -v "$CRON_COMMENT")
+
+        # 删除旧条目（含 TZ 行）
+        current_crontab=$(echo "$current_crontab" \
+            | grep -v "$SCRIPT_NAME" \
+            | grep -v "$CRON_COMMENT" \
+            | grep -v "^TZ=Asia/Shanghai")
     fi
-    
-    # 添加新的 cronjob
+
+    # TZ 必须作为 crontab 文件顶层变量才能影响调度时间
+    # 若已有 TZ 行则保留，否则在文件开头插入
+    local tz_line="TZ=Asia/Shanghai"
     local new_crontab
     if [[ -z "$current_crontab" ]]; then
-        new_crontab="$full_entry"
+        new_crontab="$tz_line
+$full_entry"
     else
-        new_crontab="$current_crontab
+        new_crontab="$tz_line
+$current_crontab
 $full_entry"
     fi
-    
-    # 安装新的 crontab
+
     echo "$new_crontab" | crontab -
-    
+
     log_info "Cronjob installed successfully!"
-    log_info "Schedule: Every Friday at 7:00 PM (Beijing Time)"
-    log_info "Command: $cron_cmd"
+    log_info "Timezone : Asia/Shanghai (CST, UTC+8)"
+    log_info "Schedule : Every Friday at 19:00 CST"
+    log_info "Command  : $cron_cmd"
 }
 
 # 卸载 cronjob
@@ -142,9 +150,12 @@ uninstall_cronjob() {
         return 0
     fi
     
-    # 删除 cronjob条目
+    # 删除 cronjob 条目（含 TZ 行）
     local new_crontab
-    new_crontab=$(echo "$current_crontab" | grep -v "$SCRIPT_NAME" | grep -v "$CRON_COMMENT")
+    new_crontab=$(echo "$current_crontab" \
+        | grep -v "$SCRIPT_NAME" \
+        | grep -v "$CRON_COMMENT" \
+        | grep -v "^TZ=Asia/Shanghai")
     
     # 安装新的 crontab
     if [[ -z "$new_crontab" ]]; then
