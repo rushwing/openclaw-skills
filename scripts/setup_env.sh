@@ -21,6 +21,7 @@ set -euo pipefail
 VENV_PATH="${OPENCLAW_VENV:-$HOME/.tutor-venv}"
 PYTHON_VERSION="3.11"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # ── Colours ───────────────────────────────────────────────────────────────────
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; BOLD='\033[1m'; NC='\033[0m'
@@ -35,7 +36,7 @@ echo "║    everything_openclaw — environment setup       ║"
 echo "╚══════════════════════════════════════════════════╝"
 echo -e "${NC}"
 echo "  Venv   : $VENV_PATH"
-echo "  Project: $SCRIPT_DIR"
+echo "  Project: $PROJECT_ROOT"
 echo "  Python : $PYTHON_VERSION"
 
 # ── Step 1: uv ────────────────────────────────────────────────────────────────
@@ -69,7 +70,7 @@ VENV_PYTHON="$VENV_PATH/bin/python"
 header "Step 3: Python packages (from pyproject.toml)"
 # -e installs this project's declared [project.dependencies] into the venv.
 # No Python source is installed (tool.setuptools.packages = []).
-uv pip install --python "$VENV_PYTHON" -e "$SCRIPT_DIR" --quiet
+uv pip install --python "$VENV_PYTHON" -e "$PROJECT_ROOT" --quiet
 ok "Packages installed"
 
 # ── Step 4: Verify Python packages ───────────────────────────────────────────

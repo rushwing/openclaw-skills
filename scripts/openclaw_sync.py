@@ -37,7 +37,7 @@ from loguru import logger
 # Constants
 # ─────────────────────────────────────────────────────────────────────────────
 
-DEFAULT_CONFIG_FILE = "openclaw_sync.yaml"
+DEFAULT_CONFIG_FILE = "configs/openclaw_sync.yaml"
 SCRIPT_DIR = Path(__file__).parent.resolve()
 PROJECT_ROOT = SCRIPT_DIR.parent.resolve()
 
