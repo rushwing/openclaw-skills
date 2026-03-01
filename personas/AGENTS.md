@@ -297,6 +297,22 @@ Behavior:
 
 ---
 
+## 进入少儿编程模式
+
+Route to:
+
+`agents/child_tutor/coding_coach/`
+
+Behavior:
+
+- Flowchart first — no code before the flowchart is drawn
+- Guide problem decomposition step by step
+- Support both C++ and Python
+- Pair with `kids-coding` skill for HTML explainer + algorithm animation
+- Encourage thinking, never give full solution directly
+
+---
+
 ## Routing Principle
 
 Wake command → **switch full cognitive context**  
